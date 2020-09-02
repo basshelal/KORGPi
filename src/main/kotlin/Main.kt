@@ -3,7 +3,12 @@
 import javafx.application.Application
 import javafx.stage.Stage
 import uk.whitecrescent.instrumentdigitizer.ignoreException
-import javax.sound.midi.*
+import javax.sound.midi.MidiMessage
+import javax.sound.midi.MidiSystem
+import javax.sound.midi.MidiUnavailableException
+import javax.sound.midi.Receiver
+import javax.sound.midi.ShortMessage
+import javax.sound.midi.Synthesizer
 import javax.sound.sampled.AudioSystem
 import kotlin.concurrent.thread
 import kotlin.math.PI
@@ -15,6 +20,9 @@ class Synth {
     val instrumentReceiver = InstrumentReceiver()
 
     fun create(): Synth {
+        AudioSystem.getMixerInfo().forEach {
+            println("Available mixer: ${it}")
+        }
         startSynthesizer()
         startMidi()
         return this
