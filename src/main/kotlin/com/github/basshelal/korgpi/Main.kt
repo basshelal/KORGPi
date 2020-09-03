@@ -1,47 +1,46 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
+package com.github.basshelal.korgpi
+
 import javafx.application.Application
 import javafx.stage.Stage
-import uk.whitecrescent.instrumentdigitizer.ignoreException
 import javax.sound.midi.MidiMessage
 import javax.sound.midi.MidiSystem
 import javax.sound.midi.MidiUnavailableException
 import javax.sound.midi.Receiver
 import javax.sound.midi.ShortMessage
-import javax.sound.midi.Synthesizer
 import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.SourceDataLine
 import kotlin.concurrent.thread
 import kotlin.math.PI
 import kotlin.math.sin
 
 class Synth {
 
-    private lateinit var synthesizer: Synthesizer
     val instrumentReceiver = InstrumentReceiver()
 
     fun create(): Synth {
-        AudioSystem.getMixerInfo().forEach {
-            println("Available mixer: ${it}")
+        KorgPi.allMixers().forEach { mixer ->
+            println("Mixer: ${mixer}")
+            mixer.allLines().forEach { line ->
+                if (line is SourceDataLine) {
+                    println("Line ${line}")
+                    println(line.lineInfo)
+                    line.open()
+                    line.start()
+                    val buffer = sineWave(440, 3, SAMPLE_RATE)
+                    line.write(buffer, 0, buffer.size)
+                    line.close()
+                }
+            }
         }
-        startSynthesizer()
         startMidi()
         return this
     }
 
     fun destroy(): Synth {
-        stopSynthesizer()
         stopMidi()
         return this
-    }
-
-    private fun startSynthesizer() {
-        synthesizer = MidiSystem.getSynthesizer()
-        synthesizer.open()
-        println("Latency: ${synthesizer.latency / 1000} milliseconds")
-    }
-
-    private fun stopSynthesizer() {
-        synthesizer.close()
     }
 
     private fun startMidi() {
@@ -66,10 +65,9 @@ class Synth {
     }
 }
 
-class InstrumentReceiver() : Receiver {
+class InstrumentReceiver : Receiver {
 
-    val format = EASY_FORMAT
-    val line = AudioSystem.getSourceDataLine(format).apply {
+    val line = AudioSystem.getSourceDataLine(EASY_FORMAT).apply {
         open(format)
         start()
     }
@@ -124,7 +122,7 @@ class App : Application() {
     lateinit var synth: Synth
 
     override fun start(primaryStage: Stage) {
-        primaryStage.title = "Instrument Digitizer App"
+        primaryStage.title = "App"
         primaryStage.width = 100.0
         primaryStage.height = 100.0
         primaryStage.show()
@@ -140,8 +138,6 @@ class App : Application() {
         synth.destroy()
         System.exit(0)
     }
-
-
 }
 
 fun sineWave(frequency: Int, seconds: Int, sampleRate: Int): ByteArray {

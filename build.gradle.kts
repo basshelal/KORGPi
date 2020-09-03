@@ -9,7 +9,7 @@ group = "com.github.basshelal"
 version = "1.0-SNAPSHOT"
 
 application {
-    mainClassName = "MainKt"
+    mainClassName = "com.github.basshelal.korgpi.MainKt"
 }
 
 javafx {
