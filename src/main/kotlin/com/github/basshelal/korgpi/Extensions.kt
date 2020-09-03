@@ -30,3 +30,8 @@ inline fun <reified T : Throwable> ignoreException(func: () -> Any) {
 inline fun Mixer.allLines(): List<Line> {
     return this.sourceLines.plus(this.targetLines).asList()
 }
+
+inline val Mixer.info: String
+    get() = mixerInfo.let {
+        "Name: ${it.name}\nversion: ${it.version}\nvendor: ${it.vendor}\ndescription: ${it.description}\n"
+    }

@@ -21,7 +21,7 @@ class Synth {
 
     fun create(): Synth {
         KorgPi.allMixers().forEach { mixer ->
-            println("Mixer: ${mixer}")
+            println(mixer.info)
             mixer.allLines().forEach { line ->
                 if (line is SourceDataLine) {
                     println("Line ${line}")
@@ -46,10 +46,10 @@ class Synth {
     private fun startMidi() {
         MidiSystem.getMidiDeviceInfo().forEach {
             ignoreException<MidiUnavailableException> {
-                MidiSystem.getMidiDevice(it).apply {
-                    transmitter.receiver = instrumentReceiver
-                    open()
-                    println("$deviceInfo was opened")
+                MidiSystem.getMidiDevice(it).also {
+                    it.transmitter.receiver = instrumentReceiver
+                    it.open()
+                    println("${it.deviceInfo} was opened")
                 }
             }
         }
@@ -57,9 +57,9 @@ class Synth {
 
     private fun stopMidi() {
         MidiSystem.getMidiDeviceInfo().forEach {
-            MidiSystem.getMidiDevice(it).apply {
-                if (isOpen) close()
-                println("${this} is closed")
+            MidiSystem.getMidiDevice(it).also {
+                if (it.isOpen) it.close()
+                println("${it} is closed")
             }
         }
     }
@@ -67,9 +67,9 @@ class Synth {
 
 class InstrumentReceiver : Receiver {
 
-    val line = AudioSystem.getSourceDataLine(EASY_FORMAT).apply {
-        open(format)
-        start()
+    val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
+        it.open(it.format)
+        it.start()
     }
 
     override fun send(message: MidiMessage, timeStamp: Long) {
