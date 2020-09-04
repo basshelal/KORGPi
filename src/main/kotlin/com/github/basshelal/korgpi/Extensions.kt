@@ -17,7 +17,12 @@ inline val Number.F: Float
 inline val Number.L: Long
     get() = this.toLong()
 
+inline val Number.B: Byte
+    get() = this.toByte()
+
 inline val now: Long get() = System.currentTimeMillis()
+
+inline val nowNanos: Long get() = System.nanoTime()
 
 inline fun <reified T : Throwable> ignoreException(func: () -> Any) {
     try {

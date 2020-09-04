@@ -2,10 +2,12 @@
 
 package com.github.basshelal.korgpi
 
+import com.github.basshelal.korgpi.log.Log
+import com.github.basshelal.korgpi.midi.JavaMidi
+import com.github.basshelal.korgpi.sound.JavaSound
 import javafx.application.Application
 import javafx.stage.Stage
 import javax.sound.midi.MidiMessage
-import javax.sound.midi.MidiSystem
 import javax.sound.midi.MidiUnavailableException
 import javax.sound.midi.Receiver
 import javax.sound.midi.ShortMessage
@@ -20,12 +22,12 @@ class Synth {
     val instrumentReceiver = InstrumentReceiver()
 
     fun create(): Synth {
-        KorgPi.allMixers().forEach { mixer ->
-            println(mixer.info)
+        JavaSound.allMixers().forEach { mixer ->
+            Log.d(mixer.info)
             mixer.allLines().forEach { line ->
                 if (line is SourceDataLine) {
-                    println("Line ${line}")
-                    println(line.lineInfo)
+                    Log.d("Line ${line}")
+                    Log.d(line.lineInfo)
                     line.open()
                     line.start()
                     val buffer = sineWave(440, 3, SAMPLE_RATE)
@@ -44,23 +46,19 @@ class Synth {
     }
 
     private fun startMidi() {
-        MidiSystem.getMidiDeviceInfo().forEach {
-            ignoreException<MidiUnavailableException> {
-                MidiSystem.getMidiDevice(it).also {
-                    it.transmitter.receiver = instrumentReceiver
-                    it.open()
-                    println("${it.deviceInfo} was opened")
-                }
+        ignoreException<MidiUnavailableException> {
+            JavaMidi.allDevices().forEach {
+                it.transmitter.receiver = instrumentReceiver
+                it.open()
+                Log.d("${it.deviceInfo} was opened")
             }
         }
     }
 
     private fun stopMidi() {
-        MidiSystem.getMidiDeviceInfo().forEach {
-            MidiSystem.getMidiDevice(it).also {
-                if (it.isOpen) it.close()
-                println("${it} is closed")
-            }
+        JavaMidi.allDevices().forEach {
+            if (it.isOpen) it.close()
+            Log.d("${it} is closed")
         }
     }
 }
@@ -80,39 +78,39 @@ class InstrumentReceiver : Receiver {
                     val buffer = sineWave(440, 1, SAMPLE_RATE)
                     line.write(buffer, 0, buffer.size)
                 }
-                println("Note on")
-                println("TimeStamp: $timeStamp")
-                println("Channel: ${message.channel}")
-                println("Command: ${message.command}")
-                println("Data1 (Note): ${message.data1}") // Note value
-                println("Data2 (Vel) : ${message.data2}") // Velocity
-                println()
+                Log.d("Note on")
+                Log.d("TimeStamp: $timeStamp")
+                Log.d("Channel: ${message.channel}")
+                Log.d("Command: ${message.command}")
+                Log.d("Data1 (Note): ${message.data1}") // Note value
+                Log.d("Data2 (Vel) : ${message.data2}") // Velocity
+                Log.d()
             }
             ShortMessage.NOTE_OFF -> {
                 thread {
                     line.flush()
                 }
-                println("Note off")
-                println()
+                Log.d("Note off")
+                Log.d()
             }
             ShortMessage.PITCH_BEND -> {
-                println("Pitch Bend")
-                println("Command: ${message.command}")
-                println("Data1: ${message.data1}") // Note value
-                println("Data2: ${message.data2}") // Velocity
-                println()
+                Log.d("Pitch Bend")
+                Log.d("Command: ${message.command}")
+                Log.d("Data1: ${message.data1}") // Note value
+                Log.d("Data2: ${message.data2}") // Velocity
+                Log.d()
             }
         }
-        println("TimeStamp: $timeStamp")
-        println("Channel: ${message.channel}")
-        println("Command: ${message.command}")
-        println("Data1: ${message.data1}") // Note value
-        println("Data2: ${message.data2}") // Velocity
-        println()
+        Log.d("TimeStamp: $timeStamp")
+        Log.d("Channel: ${message.channel}")
+        Log.d("Command: ${message.command}")
+        Log.d("Data1: ${message.data1}") // Note value
+        Log.d("Data2: ${message.data2}") // Velocity
+        Log.d()
     }
 
     override fun close() {
-        println("Closing Receiver")
+        Log.d("Closing Receiver")
     }
 
 }
@@ -129,26 +127,22 @@ class App : Application() {
     }
 
     override fun init() {
-        println("Initializing...")
+        Log.d("Initializing...")
         synth = Synth().create()
     }
 
     override fun stop() {
-        println("Stopping...")
+        Log.d("Stopping...")
         synth.destroy()
         System.exit(0)
     }
 }
 
 fun sineWave(frequency: Int, seconds: Int, sampleRate: Int): ByteArray {
-    val samples = seconds * sampleRate
-    val result = ByteArray(samples)
-    val interval = sampleRate.toDouble() / frequency
-    for (i in 0 until samples) {
-        val angle = 2.0 * PI * i / interval
-        result[i] = (sin(angle) * 127).toInt().toByte()
+    val interval = sampleRate.D / frequency.D
+    return ByteArray(seconds * sampleRate) {
+        (sin((2.0 * PI * it) / interval) * 127.0).B
     }
-    return result
 }
 
 fun main() {
