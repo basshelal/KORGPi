@@ -6,6 +6,9 @@ import com.github.basshelal.korgpi.log.Log
 import com.github.basshelal.korgpi.midi.JavaMidi
 import com.github.basshelal.korgpi.sound.JavaSound
 import javafx.application.Application
+import javafx.scene.Scene
+import javafx.scene.input.KeyEvent
+import javafx.scene.layout.StackPane
 import javafx.stage.Stage
 import javax.sound.midi.MidiMessage
 import javax.sound.midi.MidiUnavailableException
@@ -65,10 +68,10 @@ class Synth {
 
 class InstrumentReceiver : Receiver {
 
-    val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
-        it.open(it.format)
-        it.start()
-    }
+//    val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
+//        it.open(it.format)
+//        it.start()
+//    }
 
     override fun send(message: MidiMessage, timeStamp: Long) {
         require(message is ShortMessage)
@@ -76,7 +79,7 @@ class InstrumentReceiver : Receiver {
             ShortMessage.NOTE_ON -> {
                 thread {
                     val buffer = sineWave(440, 1, SAMPLE_RATE)
-                    line.write(buffer, 0, buffer.size)
+                    // line.write(buffer, 0, buffer.size)
                 }
                 Log.d("Note on")
                 Log.d("TimeStamp: $timeStamp")
@@ -88,7 +91,7 @@ class InstrumentReceiver : Receiver {
             }
             ShortMessage.NOTE_OFF -> {
                 thread {
-                    line.flush()
+                    // line.flush()
                 }
                 Log.d("Note off")
                 Log.d()
@@ -119,11 +122,30 @@ class App : Application() {
 
     lateinit var synth: Synth
 
+    lateinit var line: SourceDataLine
+
     override fun start(primaryStage: Stage) {
-        primaryStage.title = "App"
-        primaryStage.width = 100.0
-        primaryStage.height = 100.0
-        primaryStage.show()
+        line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
+            it.open(it.format)
+            it.start()
+        }
+        primaryStage.apply {
+            title = "App"
+            width = 100.0
+            height = 100.0
+            scene = Scene(StackPane()).also {
+                it.setOnKeyPressed { keyEvent: KeyEvent ->
+                    Log.d(keyEvent)
+                    thread {
+                        val buffer = sineWave(440, 1, SAMPLE_RATE)
+                        line.write(buffer, 0, buffer.size)
+                    }
+                }
+                it.setOnKeyReleased { keyEvent: KeyEvent ->
+                    thread { line.flush() }
+                }
+            }
+        }.show()
     }
 
     override fun init() {
