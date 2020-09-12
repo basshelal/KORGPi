@@ -2,6 +2,7 @@
 
 package com.github.basshelal.korgpi
 
+import javax.sound.midi.ShortMessage
 import javax.sound.sampled.Line
 import javax.sound.sampled.Mixer
 
@@ -39,4 +40,9 @@ inline fun Mixer.allLines(): List<Line> {
 inline val Mixer.info: String
     get() = mixerInfo.let {
         "Name: ${it.name}\nversion: ${it.version}\nvendor: ${it.vendor}\ndescription: ${it.description}\n"
+    }
+
+inline val ShortMessage.info: String
+    get() {
+        return "Command: $command, channel: $channel, Data1: $data1, Data2: $data2"
     }

@@ -4,41 +4,30 @@ package com.github.basshelal.korgpi
 
 import com.github.basshelal.korgpi.log.Log
 import com.github.basshelal.korgpi.midi.JavaMidi
-import com.github.basshelal.korgpi.sound.JavaSound
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.StackPane
 import javafx.stage.Stage
 import javax.sound.midi.MidiMessage
-import javax.sound.midi.MidiUnavailableException
+import javax.sound.midi.MidiSystem
 import javax.sound.midi.Receiver
 import javax.sound.midi.ShortMessage
 import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.SourceDataLine
 import kotlin.concurrent.thread
 import kotlin.math.PI
 import kotlin.math.sin
+
+val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
+    it.open(it.format)
+    it.start()
+}
 
 class Synth {
 
     val instrumentReceiver = InstrumentReceiver()
 
     fun create(): Synth {
-        JavaSound.allMixers().forEach { mixer ->
-            Log.d(mixer.info)
-            mixer.allLines().forEach { line ->
-                if (line is SourceDataLine) {
-                    Log.d("Line ${line}")
-                    Log.d(line.lineInfo)
-                    line.open()
-                    line.start()
-                    val buffer = sineWave(440, 3, SAMPLE_RATE)
-                    line.write(buffer, 0, buffer.size)
-                    line.close()
-                }
-            }
-        }
         startMidi()
         return this
     }
@@ -49,12 +38,10 @@ class Synth {
     }
 
     private fun startMidi() {
-        ignoreException<MidiUnavailableException> {
-            JavaMidi.allDevices().forEach {
-                it.transmitter.receiver = instrumentReceiver
-                it.open()
-                Log.d("${it.deviceInfo} was opened")
-            }
+        try {
+            MidiSystem.getTransmitter().receiver = instrumentReceiver
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -68,48 +55,22 @@ class Synth {
 
 class InstrumentReceiver : Receiver {
 
-//    val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
-//        it.open(it.format)
-//        it.start()
-//    }
-
     override fun send(message: MidiMessage, timeStamp: Long) {
         require(message is ShortMessage)
         when (message.command) {
             ShortMessage.NOTE_ON -> {
                 thread {
                     val buffer = sineWave(440, 1, SAMPLE_RATE)
-                    // line.write(buffer, 0, buffer.size)
+                    line.write(buffer, 0, buffer.size)
                 }
-                Log.d("Note on")
-                Log.d("TimeStamp: $timeStamp")
-                Log.d("Channel: ${message.channel}")
-                Log.d("Command: ${message.command}")
-                Log.d("Data1 (Note): ${message.data1}") // Note value
-                Log.d("Data2 (Vel) : ${message.data2}") // Velocity
-                Log.d()
             }
             ShortMessage.NOTE_OFF -> {
-                thread {
-                    // line.flush()
-                }
-                Log.d("Note off")
-                Log.d()
+                thread { line.flush() }
             }
             ShortMessage.PITCH_BEND -> {
-                Log.d("Pitch Bend")
-                Log.d("Command: ${message.command}")
-                Log.d("Data1: ${message.data1}") // Note value
-                Log.d("Data2: ${message.data2}") // Velocity
-                Log.d()
             }
         }
-        Log.d("TimeStamp: $timeStamp")
-        Log.d("Channel: ${message.channel}")
-        Log.d("Command: ${message.command}")
-        Log.d("Data1: ${message.data1}") // Note value
-        Log.d("Data2: ${message.data2}") // Velocity
-        Log.d()
+        Log.d(message.info)
     }
 
     override fun close() {
@@ -122,13 +83,7 @@ class App : Application() {
 
     lateinit var synth: Synth
 
-    lateinit var line: SourceDataLine
-
     override fun start(primaryStage: Stage) {
-        line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
-            it.open(it.format)
-            it.start()
-        }
         primaryStage.apply {
             title = "App"
             width = 100.0
