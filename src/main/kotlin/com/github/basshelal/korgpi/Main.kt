@@ -8,13 +8,17 @@ import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.StackPane
+import javafx.scene.text.Font
 import javafx.stage.Stage
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import tornadofx.add
+import tornadofx.text
 import javax.sound.midi.MidiMessage
-import javax.sound.midi.MidiSystem
+import javax.sound.midi.MidiUnavailableException
 import javax.sound.midi.Receiver
 import javax.sound.midi.ShortMessage
 import javax.sound.sampled.AudioSystem
-import kotlin.concurrent.thread
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -38,13 +42,11 @@ class Synth {
     }
 
     private fun startMidi() {
-        try {
-            // TODO: 12-Sep-20 Below wont work when using the Focusrite because JavaSound
-            //  picks it as the default MIDI instead of the USB MIDI, so we need to unplug the Focusrite
-            //  before playing, this sucks so we need to figure out a way to allow us to pick the MIDI in Transmitter
-            MidiSystem.getTransmitter().receiver = instrumentReceiver
-        } catch (e: Exception) {
-            e.printStackTrace()
+        JavaMidi.allDevices().forEach {
+            ignoreException<MidiUnavailableException> {
+                it.open()
+                it.transmitter.receiver = instrumentReceiver
+            }
         }
     }
 
@@ -62,13 +64,13 @@ class InstrumentReceiver : Receiver {
         require(message is ShortMessage)
         when (message.command) {
             ShortMessage.NOTE_ON -> {
-                thread {
+                GlobalScope.launch {
                     val buffer = sineWave(440, 1, SAMPLE_RATE)
                     line.write(buffer, 0, buffer.size)
                 }
             }
             ShortMessage.NOTE_OFF -> {
-                thread { line.flush() }
+                GlobalScope.launch { line.flush() }
             }
             ShortMessage.PITCH_BEND -> {
             }
@@ -88,18 +90,20 @@ class App : Application() {
 
     override fun start(primaryStage: Stage) {
         primaryStage.apply {
-            title = "App"
+            title = "KorgPi"
             dimensions = 250 to 250
-            scene = Scene(StackPane()).also {
-                it.setOnKeyPressed { keyEvent: KeyEvent ->
+            scene = Scene(StackPane().also { stackPane: StackPane ->
+                stackPane.add(text("KorgPi").also { it.font = Font.font(45.0) })
+            }).also { scene: Scene ->
+                scene.setOnKeyPressed { keyEvent: KeyEvent ->
                     Log.d(keyEvent)
-                    thread {
+                    GlobalScope.launch {
                         val buffer = sineWave(440, 1, SAMPLE_RATE)
                         line.write(buffer, 0, buffer.size)
                     }
                 }
-                it.setOnKeyReleased { keyEvent: KeyEvent ->
-                    thread { line.flush() }
+                scene.setOnKeyReleased { keyEvent: KeyEvent ->
+                    GlobalScope.launch { line.flush() }
                 }
             }
             show()
@@ -119,9 +123,9 @@ class App : Application() {
     }
 }
 
-fun sineWave(frequency: Int, seconds: Int, sampleRate: Int): ByteArray {
+fun sineWave(frequency: Number, seconds: Number, sampleRate: Number): ByteArray {
     val interval = sampleRate.D / frequency.D
-    return ByteArray(seconds * sampleRate) {
+    return ByteArray(seconds.I * sampleRate.I) {
         (sin((2.0 * PI * it) / interval) * 127.0).B
     }
 }

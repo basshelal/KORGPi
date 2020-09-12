@@ -26,11 +26,12 @@ inline val now: Long get() = System.currentTimeMillis()
 
 inline val nowNanos: Long get() = System.nanoTime()
 
-inline fun <reified T : Throwable> ignoreException(func: () -> Any) {
+inline fun <reified T : Throwable> ignoreException(printStackTrace: Boolean = false, func: () -> Unit) {
     try {
         func()
     } catch (e: Throwable) {
         if (e !is T) throw e
+        else if (printStackTrace) e.printStackTrace()
     }
 }
 
