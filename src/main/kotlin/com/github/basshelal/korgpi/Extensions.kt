@@ -2,6 +2,7 @@
 
 package com.github.basshelal.korgpi
 
+import javafx.stage.Stage
 import javax.sound.midi.ShortMessage
 import javax.sound.sampled.Line
 import javax.sound.sampled.Mixer
@@ -46,3 +47,11 @@ inline val ShortMessage.info: String
     get() {
         return "Command: $command, channel: $channel, Data1: $data1, Data2: $data2"
     }
+
+inline var Stage.dimensions: Pair<Number, Number>
+    set(value) {
+        width = value.first.toDouble()
+        height = value.second.toDouble()
+    }
+    @Deprecated("No Getter", level = DeprecationLevel.ERROR)
+    get() = throw NotImplementedError("No Getter")

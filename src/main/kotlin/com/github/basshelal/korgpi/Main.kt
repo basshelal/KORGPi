@@ -39,6 +39,9 @@ class Synth {
 
     private fun startMidi() {
         try {
+            // TODO: 12-Sep-20 Below wont work when using the Focusrite because JavaSound
+            //  picks it as the default MIDI instead of the USB MIDI, so we need to unplug the Focusrite
+            //  before playing, this sucks so we need to figure out a way to allow us to pick the MIDI in Transmitter
             MidiSystem.getTransmitter().receiver = instrumentReceiver
         } catch (e: Exception) {
             e.printStackTrace()
@@ -86,8 +89,7 @@ class App : Application() {
     override fun start(primaryStage: Stage) {
         primaryStage.apply {
             title = "App"
-            width = 100.0
-            height = 100.0
+            dimensions = 250 to 250
             scene = Scene(StackPane()).also {
                 it.setOnKeyPressed { keyEvent: KeyEvent ->
                     Log.d(keyEvent)
@@ -100,7 +102,8 @@ class App : Application() {
                     thread { line.flush() }
                 }
             }
-        }.show()
+            show()
+        }
     }
 
     override fun init() {
@@ -111,6 +114,7 @@ class App : Application() {
     override fun stop() {
         Log.d("Stopping...")
         synth.destroy()
+        line.close()
         System.exit(0)
     }
 }
