@@ -4,6 +4,7 @@ package com.github.basshelal.korgpi
 
 import com.github.basshelal.korgpi.log.Log
 import com.github.basshelal.korgpi.midi.JavaMidi
+import com.github.basshelal.korgpi.sound.JavaSound
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.input.KeyEvent
@@ -22,8 +23,20 @@ import javax.sound.sampled.AudioSystem
 import kotlin.math.PI
 import kotlin.math.sin
 
+// (Bytes per frame * Sample Rate) / 100 (for 10ms latency)
+
+val BUFFER_SIZE = (4 * SAMPLE_RATE) / 100
+
 val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
-    it.open(it.format)
+    Log.d(BUFFER_SIZE)
+    it.open(it.format, BUFFER_SIZE)
+    Log.d(it.bufferSize)
+    it.start()
+}
+
+val inputLine = AudioSystem.getTargetDataLine(EASY_FORMAT).also {
+    it.open(it.format, BUFFER_SIZE)
+    Log.d(it.bufferSize)
     it.start()
 }
 
@@ -113,6 +126,21 @@ class App : Application() {
     override fun init() {
         Log.d("Initializing...")
         synth = Synth().create()
+
+        JavaSound.allMixers().forEach {
+            ignoreExceptions(true) {
+                it.open()
+                Log.d("${it.info}\n")
+            }
+        }
+
+        GlobalScope.launch {
+            val buffer = ByteArray(BUFFER_SIZE)
+            while (true) {
+                inputLine.read(buffer, 0, BUFFER_SIZE)
+                line.write(buffer, 0, BUFFER_SIZE)
+            }
+        }
     }
 
     override fun stop() {

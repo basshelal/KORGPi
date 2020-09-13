@@ -26,6 +26,9 @@ inline val now: Long get() = System.currentTimeMillis()
 
 inline val nowNanos: Long get() = System.nanoTime()
 
+inline fun ignoreExceptions(printStackTrace: Boolean = false, func: () -> Unit) =
+    ignoreException<Throwable>(printStackTrace, func)
+
 inline fun <reified T : Throwable> ignoreException(printStackTrace: Boolean = false, func: () -> Unit) {
     try {
         func()
@@ -41,7 +44,13 @@ inline fun Mixer.allLines(): List<Line> {
 
 inline val Mixer.info: String
     get() = mixerInfo.let {
-        "Name: ${it.name}\nversion: ${it.version}\nvendor: ${it.vendor}\ndescription: ${it.description}\n"
+        """Name: ${it.name}
+        |version: ${it.version}
+        |vendor: ${it.vendor}
+        |description: ${it.description}
+        |source lines: ${sourceLines.size}
+        |target lines: ${targetLines.size}
+        """.trimMargin()
     }
 
 inline val ShortMessage.info: String
