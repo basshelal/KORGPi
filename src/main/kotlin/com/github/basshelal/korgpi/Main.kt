@@ -10,8 +10,9 @@ import com.github.basshelal.korgpi.extensions.details
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.extensions.ignoreException
 import com.github.basshelal.korgpi.extensions.mixer
-import com.github.basshelal.korgpi.log.Log
+import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.midi.JavaMidi
+import com.github.basshelal.korgpi.midi.SimpleReceiver
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.input.KeyEvent
@@ -24,7 +25,6 @@ import tornadofx.add
 import tornadofx.text
 import javax.sound.midi.MidiMessage
 import javax.sound.midi.MidiUnavailableException
-import javax.sound.midi.Receiver
 import javax.sound.midi.ShortMessage
 import javax.sound.sampled.AudioSystem
 import kotlin.math.PI
@@ -32,24 +32,37 @@ import kotlin.math.sin
 
 // (Bytes per frame * Sample Rate) / 100 (for 10ms latency)
 
-val BUFFER_SIZE = (4 * SAMPLE_RATE) / 100
+val BUFFER_SIZE = ((2 * SAMPLE_RATE) / 10F).I
 
-val outputLine = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
-    Log.d(BUFFER_SIZE)
+val outputLine = AudioSystem.getSourceDataLine(DEFAULT_FORMAT).also {
     it.open(it.format, BUFFER_SIZE)
-    Log.d(it.bufferSize)
     it.start()
 }
 
-val inputLine = AudioSystem.getTargetDataLine(EASY_FORMAT).also {
+val inputLine = AudioSystem.getTargetDataLine(DEFAULT_FORMAT).also {
     it.open(it.format, BUFFER_SIZE)
-    Log.d(it.bufferSize)
     it.start()
 }
 
 class Synth {
 
-    val instrumentReceiver = InstrumentReceiver()
+    val instrumentReceiver = SimpleReceiver { message: MidiMessage, timeStamp: Long ->
+        require(message is ShortMessage)
+        when (message.command) {
+            ShortMessage.NOTE_ON -> {
+                GlobalScope.launch {
+                    val buffer = sineWave(440, 1, SAMPLE_RATE)
+                    outputLine.write(buffer, 0, buffer.size)
+                }
+            }
+            ShortMessage.NOTE_OFF -> {
+                GlobalScope.launch { outputLine.flush() }
+            }
+            ShortMessage.PITCH_BEND -> {
+            }
+        }
+        logD(message.details)
+    }
 
     fun create(): Synth {
         startMidi()
@@ -73,35 +86,8 @@ class Synth {
     private fun stopMidi() {
         JavaMidi.allDevices().forEach {
             if (it.isOpen) it.close()
-            Log.d("${it} is closed")
         }
     }
-}
-
-class InstrumentReceiver : Receiver {
-
-    override fun send(message: MidiMessage, timeStamp: Long) {
-        require(message is ShortMessage)
-        when (message.command) {
-            ShortMessage.NOTE_ON -> {
-                GlobalScope.launch {
-                    val buffer = sineWave(440, 1, SAMPLE_RATE)
-                    outputLine.write(buffer, 0, buffer.size)
-                }
-            }
-            ShortMessage.NOTE_OFF -> {
-                GlobalScope.launch { outputLine.flush() }
-            }
-            ShortMessage.PITCH_BEND -> {
-            }
-        }
-        Log.d(message.details)
-    }
-
-    override fun close() {
-        Log.d("Closing Receiver")
-    }
-
 }
 
 class App : Application() {
@@ -116,7 +102,7 @@ class App : Application() {
                 stackPane.add(text("KorgPi").also { it.font = Font.font(45.0) })
             }).also { scene: Scene ->
                 scene.setOnKeyPressed { keyEvent: KeyEvent ->
-                    Log.d(keyEvent)
+                    logD(keyEvent)
                     GlobalScope.launch {
                         val buffer = sineWave(440, 1, SAMPLE_RATE)
                         outputLine.write(buffer, 0, buffer.size)
@@ -131,32 +117,32 @@ class App : Application() {
     }
 
     override fun init() {
-        Log.d("Initializing...")
+        logD("Initializing...")
         synth = Synth().create()
 
         JavaAudio.allDataLines().forEach {
-            Log.d("${it.details}\n")
-            Log.d("${it.mixer?.details}\n")
+            logD("${it.details}\n")
+            logD("${it.mixer?.details}\n")
         }
 
         GlobalScope.launch {
             val buffer = ByteArray(BUFFER_SIZE)
             while (true) {
-                inputLine.read(buffer, 0, BUFFER_SIZE)
-                outputLine.write(buffer, 0, BUFFER_SIZE)
+                //    inputLine.read(buffer, 0, BUFFER_SIZE)
+                //    outputLine.write(buffer, 0, BUFFER_SIZE)
             }
         }
     }
 
     override fun stop() {
-        Log.d("Stopping...")
+        logD("Stopping...")
         synth.destroy()
         outputLine.close()
         System.exit(0)
     }
 }
 
-fun sineWave(frequency: Number, seconds: Number, sampleRate: Number): ByteArray {
+fun sineWave(frequency: Number, seconds: Number, sampleRate: Number = SAMPLE_RATE): ByteArray {
     val interval = sampleRate.D / frequency.D
     return ByteArray(seconds.I * sampleRate.I) {
         (sin((2.0 * PI * it) / interval) * 127.0).B
