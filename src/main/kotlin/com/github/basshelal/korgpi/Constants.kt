@@ -1,5 +1,6 @@
 package com.github.basshelal.korgpi
 
+import com.github.basshelal.korgpi.extensions.F
 import javax.sound.sampled.AudioFormat
 
 const val SAMPLE_RATE = 44100

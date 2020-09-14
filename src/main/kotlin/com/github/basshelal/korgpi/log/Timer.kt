@@ -2,8 +2,8 @@
 
 package com.github.basshelal.korgpi.log
 
-import com.github.basshelal.korgpi.now
-import com.github.basshelal.korgpi.nowNanos
+import com.github.basshelal.korgpi.extensions.now
+import com.github.basshelal.korgpi.extensions.nowNanos
 
 object Timer {
 

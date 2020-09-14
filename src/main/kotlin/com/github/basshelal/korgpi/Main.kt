@@ -2,9 +2,16 @@
 
 package com.github.basshelal.korgpi
 
+import com.github.basshelal.korgpi.audio.JavaAudio
+import com.github.basshelal.korgpi.extensions.B
+import com.github.basshelal.korgpi.extensions.D
+import com.github.basshelal.korgpi.extensions.I
+import com.github.basshelal.korgpi.extensions.details
+import com.github.basshelal.korgpi.extensions.dimensions
+import com.github.basshelal.korgpi.extensions.ignoreException
+import com.github.basshelal.korgpi.extensions.mixer
 import com.github.basshelal.korgpi.log.Log
 import com.github.basshelal.korgpi.midi.JavaMidi
-import com.github.basshelal.korgpi.sound.JavaSound
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.scene.input.KeyEvent
@@ -27,7 +34,7 @@ import kotlin.math.sin
 
 val BUFFER_SIZE = (4 * SAMPLE_RATE) / 100
 
-val line = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
+val outputLine = AudioSystem.getSourceDataLine(EASY_FORMAT).also {
     Log.d(BUFFER_SIZE)
     it.open(it.format, BUFFER_SIZE)
     Log.d(it.bufferSize)
@@ -79,16 +86,16 @@ class InstrumentReceiver : Receiver {
             ShortMessage.NOTE_ON -> {
                 GlobalScope.launch {
                     val buffer = sineWave(440, 1, SAMPLE_RATE)
-                    line.write(buffer, 0, buffer.size)
+                    outputLine.write(buffer, 0, buffer.size)
                 }
             }
             ShortMessage.NOTE_OFF -> {
-                GlobalScope.launch { line.flush() }
+                GlobalScope.launch { outputLine.flush() }
             }
             ShortMessage.PITCH_BEND -> {
             }
         }
-        Log.d(message.info)
+        Log.d(message.details)
     }
 
     override fun close() {
@@ -112,11 +119,11 @@ class App : Application() {
                     Log.d(keyEvent)
                     GlobalScope.launch {
                         val buffer = sineWave(440, 1, SAMPLE_RATE)
-                        line.write(buffer, 0, buffer.size)
+                        outputLine.write(buffer, 0, buffer.size)
                     }
                 }
                 scene.setOnKeyReleased { keyEvent: KeyEvent ->
-                    GlobalScope.launch { line.flush() }
+                    GlobalScope.launch { outputLine.flush() }
                 }
             }
             show()
@@ -127,18 +134,16 @@ class App : Application() {
         Log.d("Initializing...")
         synth = Synth().create()
 
-        JavaSound.allMixers().forEach {
-            ignoreExceptions(true) {
-                it.open()
-                Log.d("${it.info}\n")
-            }
+        JavaAudio.allDataLines().forEach {
+            Log.d("${it.details}\n")
+            Log.d("${it.mixer?.details}\n")
         }
 
         GlobalScope.launch {
             val buffer = ByteArray(BUFFER_SIZE)
             while (true) {
                 inputLine.read(buffer, 0, BUFFER_SIZE)
-                line.write(buffer, 0, BUFFER_SIZE)
+                outputLine.write(buffer, 0, BUFFER_SIZE)
             }
         }
     }
@@ -146,7 +151,7 @@ class App : Application() {
     override fun stop() {
         Log.d("Stopping...")
         synth.destroy()
-        line.close()
+        outputLine.close()
         System.exit(0)
     }
 }
