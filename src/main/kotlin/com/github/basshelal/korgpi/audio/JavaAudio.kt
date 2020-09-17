@@ -13,5 +13,5 @@ object JavaAudio {
 
     inline fun allLines(): List<Line> = allMixers().flatMap { it.allLines() }
 
-    inline fun allDataLines(): List<DataLine> = allLines().filter { it is DataLine }.map { it as DataLine }
+    inline fun allDataLines(): List<DataLine> = allLines().filterIsInstance<DataLine>()
 }

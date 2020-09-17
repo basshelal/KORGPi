@@ -29,4 +29,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     testImplementation(kotlin("test-junit5"))
     implementation("no.tornado:tornadofx:1.7.20")
+    implementation("com.jfoenix:jfoenix:9.0.10")
 }
