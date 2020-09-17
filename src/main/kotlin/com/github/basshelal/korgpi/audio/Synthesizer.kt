@@ -1,6 +1,6 @@
 package com.github.basshelal.korgpi.audio
 
-// JUCE Synthesizer source here: 
+// JUCE Synthesizer source here:
 // https://github.com/juce-framework/JUCE/tree/master/modules/juce_audio_basics/synthesisers
 
 /**
@@ -22,8 +22,9 @@ package com.github.basshelal.korgpi.audio
  * they can pitch their output correctly.
  */
 // TODO: 17-Sep-20 voices needs to be thread-safe because callers can modify whilst we are reading
-//  for audio playback
-class Synthesizer(private val voices: List<SynthesizerVoice> = mutableListOf()) {
+//  for audio playback, JUCE uses Reentrant Locks when necessary and indeed we need synchronized
+//  blocks all over this bitch to ensure no CMEs or any weird concurrency issues
+class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableListOf()) {
 
 }
 
@@ -56,16 +57,19 @@ abstract class SynthesizerSound {
      * The Synthesizer will use this information when deciding which sounds to trigger
      * for a given note.
      */
-    open fun appliesToNote(midiNote: Int): Boolean = false
+    abstract fun appliesToNote(midiNote: Int): Boolean
 
     /**
      * Returns true if the sound should be triggered by midi events on a given channel.
      * The Synthesizer will use this information when deciding which sounds to trigger
      * for a given note.
      */
-    open fun appliesToChannel(channel: Int): Boolean = false
+    abstract fun appliesToChannel(channel: Int): Boolean
 
     companion object {
-        val EMPTY = object : SynthesizerSound() {}
+        val EMPTY = object : SynthesizerSound() {
+            override fun appliesToNote(midiNote: Int) = false
+            override fun appliesToChannel(channel: Int) = false
+        }
     }
 }

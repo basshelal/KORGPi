@@ -8,11 +8,6 @@ import com.github.basshelal.korgpi.audio.JavaAudio
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.Line
 import javax.sound.sampled.Mixer
-import javax.sound.sampled.SourceDataLine
-import javax.sound.sampled.TargetDataLine
-
-typealias WritableLine = SourceDataLine
-typealias ReadableLine = TargetDataLine
 
 inline fun Mixer.allLines(): List<Line> {
     return this.sourceLines.plus(this.targetLines).asList()

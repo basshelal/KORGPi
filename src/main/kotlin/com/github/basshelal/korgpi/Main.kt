@@ -3,6 +3,9 @@
 package com.github.basshelal.korgpi
 
 import com.github.basshelal.korgpi.audio.JavaAudio
+import com.github.basshelal.korgpi.audio.ReadWriteLineThread
+import com.github.basshelal.korgpi.audio.ReadableLine
+import com.github.basshelal.korgpi.audio.WritableLine
 import com.github.basshelal.korgpi.extensions.B
 import com.github.basshelal.korgpi.extensions.D
 import com.github.basshelal.korgpi.extensions.I
@@ -10,6 +13,7 @@ import com.github.basshelal.korgpi.extensions.details
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.extensions.ignoreException
 import com.github.basshelal.korgpi.extensions.mixer
+import com.github.basshelal.korgpi.extensions.now
 import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.midi.JavaMidi
 import com.github.basshelal.korgpi.midi.SimpleReceiver
@@ -20,6 +24,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.Font
 import javafx.stage.Stage
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tornadofx.add
 import tornadofx.text
@@ -132,6 +137,22 @@ class App : Application() {
                 //    outputLine.write(buffer, 0, BUFFER_SIZE)
             }
         }
+
+        val buffer = ByteArray(BUFFER_SIZE)
+        val readLine = ReadableLine(inputLine)
+        val writeLine = WritableLine(outputLine)
+        val thread = ReadWriteLineThread(readLine, writeLine, buffer)
+        thread.start()
+
+        GlobalScope.launch {
+            delay(5000)
+            logD(thread.isAlive)
+            thread.running = false
+            logD("Killed at $now")
+            delay(1000)
+            logD(thread.isAlive)
+        }
+
     }
 
     override fun stop() {
