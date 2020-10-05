@@ -18,9 +18,14 @@ import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.midi.JavaMidi
 import com.github.basshelal.korgpi.midi.SimpleReceiver
 import javafx.application.Application
+import javafx.geometry.Insets
 import javafx.scene.Scene
 import javafx.scene.input.KeyEvent
+import javafx.scene.layout.Background
+import javafx.scene.layout.BackgroundFill
+import javafx.scene.layout.CornerRadii
 import javafx.scene.layout.StackPane
+import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.stage.Stage
 import kotlinx.coroutines.GlobalScope
@@ -56,7 +61,7 @@ class Synth {
         when (message.command) {
             ShortMessage.NOTE_ON -> {
                 GlobalScope.launch {
-                    val buffer = sineWave(440, 1, SAMPLE_RATE)
+                    val buffer = playNote(message.data1)
                     outputLine.write(buffer, 0, buffer.size)
                 }
             }
@@ -105,6 +110,8 @@ class App : Application() {
             dimensions = 250 to 250
             scene = Scene(StackPane().also { stackPane: StackPane ->
                 stackPane.add(text("KorgPi").also { it.font = Font.font(45.0) })
+                stackPane.background = Background(BackgroundFill(Color.DARKGREY, CornerRadii(1.0),
+                        Insets(0.0, 0.0, 0.0, 0.0)))
             }).also { scene: Scene ->
                 scene.setOnKeyPressed { keyEvent: KeyEvent ->
                     logD(keyEvent)
@@ -166,6 +173,14 @@ class App : Application() {
 fun sineWave(frequency: Number, seconds: Number, sampleRate: Number = SAMPLE_RATE): ByteArray {
     val interval = sampleRate.D / frequency.D
     return ByteArray(seconds.I * sampleRate.I) {
+        (sin((2.0 * PI * it) / interval) * 127.0).B
+    }
+}
+
+fun playNote(noteNumber: Int): ByteArray {
+    val noteFrequency: Double = Key.fromNumber(noteNumber).frequency
+    val interval = SAMPLE_RATE.D / noteFrequency
+    return ByteArray(SAMPLE_RATE.I) {
         (sin((2.0 * PI * it) / interval) * 127.0).B
     }
 }
