@@ -13,7 +13,7 @@ tasks.withType<KotlinCompile> {
 }
 
 application {
-    mainClassName = "com.github.basshelal.korgpi.MainKt"
+    mainClassName = "com.github.basshelal.korgpi.app.AppKt"
 }
 
 javafx {
