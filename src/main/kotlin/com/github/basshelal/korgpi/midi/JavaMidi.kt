@@ -8,9 +8,7 @@ import javax.sound.midi.MidiSystem
 import javax.sound.midi.Receiver
 
 object JavaMidi {
-    inline fun allDevices(): List<MidiDevice> {
-        return MidiSystem.getMidiDeviceInfo().map { MidiSystem.getMidiDevice(it) }
-    }
+    inline fun allDevices(): List<MidiDevice> = MidiSystem.getMidiDeviceInfo().map { MidiSystem.getMidiDevice(it) }
 }
 
 abstract class SimpleReceiver : Receiver {
@@ -19,8 +17,8 @@ abstract class SimpleReceiver : Receiver {
 
     companion object {
         inline operator fun invoke(
-            crossinline close: () -> Unit = {},
-            crossinline send: (message: MidiMessage, timeStamp: Long) -> Unit = { message, timeStamp -> }
+                crossinline close: () -> Unit = {},
+                crossinline send: (message: MidiMessage, timeStamp: Long) -> Unit = { message, timeStamp -> }
         ): SimpleReceiver {
             return object : SimpleReceiver() {
                 override fun close() = close()

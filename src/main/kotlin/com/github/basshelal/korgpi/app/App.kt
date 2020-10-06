@@ -9,6 +9,7 @@ import com.github.basshelal.korgpi.audio.JavaAudio
 import com.github.basshelal.korgpi.audio.ReadWriteLineThread
 import com.github.basshelal.korgpi.audio.ReadableLine
 import com.github.basshelal.korgpi.audio.WritableLine
+import com.github.basshelal.korgpi.core.AppMixer
 import com.github.basshelal.korgpi.extensions.B
 import com.github.basshelal.korgpi.extensions.D
 import com.github.basshelal.korgpi.extensions.I
@@ -90,6 +91,7 @@ class Synth {
     private fun startMidi() {
         JavaMidi.allDevices().forEach {
             ignoreException<MidiUnavailableException> {
+                logD("${it.details}\n")
                 it.open()
                 it.transmitter.receiver = instrumentReceiver
             }
@@ -161,6 +163,10 @@ class App : Application() {
             logD("Killed at $now")
             delay(1000)
             logD(thread.isAlive)
+
+            AppMixer.allMixers().forEach { logD("${it.details}\n") }
+            AppMixer.allMidiDevices().forEach { logD("${it.details}\n") }
+            AppMixer.allDataLines().forEach { logD("${it.details}\n") }
         }
 
     }

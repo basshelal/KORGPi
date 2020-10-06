@@ -15,11 +15,11 @@ inline fun Mixer.allLines(): List<Line> {
 
 inline val Mixer.details: String
     get() = mixerInfo.let {
-        """Name: ${it.name}
+        """Type: ${this.javaClass.simpleName}
+        |name: ${it.name}
         |version: ${it.version}
         |vendor: ${it.vendor}
         |description: ${it.description}
-        |type: ${this.javaClass.simpleName}
         |source lines: ${sourceLines.size}
         |target lines: ${targetLines.size}
         """.trimMargin()
@@ -30,7 +30,7 @@ inline val Line.mixer: Mixer?
 
 inline val DataLine.details: String
     get() = (lineInfo as DataLine.Info).let {
-        """Type: ${it.lineClass.simpleName}
+        """Type: ${this.javaClass.simpleName}
         |formats: ${it.formats.size}
         |min buffer size: ${it.minBufferSize}
         |max buffer size: ${it.maxBufferSize}

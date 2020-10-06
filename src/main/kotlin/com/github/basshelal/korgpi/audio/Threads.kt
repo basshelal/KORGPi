@@ -9,7 +9,12 @@ annotation class RealTimeCritical
 
 // A thread in charge of reading from or writing to any kind of audio buffer(s).
 // Code run here is real time critical
+// Audio Threads are by default max priority
 abstract class AudioThread : Thread() {
+
+    init {
+        this.priority = MAX_PRIORITY
+    }
 
     abstract val buffer: ByteArray
 
@@ -20,8 +25,8 @@ abstract class AudioThread : Thread() {
 abstract class LineThread<T : JavaAudioLine<*>>(val line: T) : AudioThread()
 
 class WritableLineThread(
-    line: WritableLine,
-    override val buffer: ByteArray = ByteArray(line.line.bufferSize)
+        line: WritableLine,
+        override val buffer: ByteArray = ByteArray(line.line.bufferSize)
 ) : LineThread<WritableLine>(line) {
 
     @RealTimeCritical
@@ -33,8 +38,8 @@ class WritableLineThread(
 }
 
 class ReadableLineThread(
-    line: ReadableLine,
-    override val buffer: ByteArray = ByteArray(line.line.bufferSize)
+        line: ReadableLine,
+        override val buffer: ByteArray = ByteArray(line.line.bufferSize)
 ) : LineThread<ReadableLine>(line) {
 
     @RealTimeCritical
@@ -46,9 +51,9 @@ class ReadableLineThread(
 }
 
 class ReadWriteLineThread(
-    val readableLine: ReadableLine,
-    val writableLine: WritableLine,
-    override val buffer: ByteArray
+        val readableLine: ReadableLine,
+        val writableLine: WritableLine,
+        override val buffer: ByteArray
 ) : AudioThread() {
 
     var running = true
