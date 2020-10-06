@@ -9,7 +9,8 @@ import javax.sound.midi.ShortMessage
 
 inline val MidiDevice.details: String
     get() = deviceInfo.let {
-        """Type: ${this.javaClass.simpleName}
+        """MidiDevice:
+        |type: ${this.javaClass.simpleName}
         |name: ${it.name}
         |version: ${it.version}
         |vendor: ${it.vendor}

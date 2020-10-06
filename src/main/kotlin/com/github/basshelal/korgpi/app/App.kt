@@ -5,22 +5,21 @@ package com.github.basshelal.korgpi.app
 import com.github.basshelal.korgpi.DEFAULT_FORMAT
 import com.github.basshelal.korgpi.Key
 import com.github.basshelal.korgpi.SAMPLE_RATE
-import com.github.basshelal.korgpi.audio.JavaAudio
 import com.github.basshelal.korgpi.audio.ReadWriteLineThread
 import com.github.basshelal.korgpi.audio.ReadableLine
 import com.github.basshelal.korgpi.audio.WritableLine
-import com.github.basshelal.korgpi.core.AppMixer
 import com.github.basshelal.korgpi.extensions.B
 import com.github.basshelal.korgpi.extensions.D
 import com.github.basshelal.korgpi.extensions.I
 import com.github.basshelal.korgpi.extensions.details
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.extensions.ignoreException
-import com.github.basshelal.korgpi.extensions.mixer
 import com.github.basshelal.korgpi.extensions.now
 import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.midi.JavaMidi
 import com.github.basshelal.korgpi.midi.SimpleReceiver
+import com.github.basshelal.korgpi.mixers.AudioMixer
+import com.github.basshelal.korgpi.mixers.MidiMixer
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene
@@ -91,7 +90,6 @@ class Synth {
     private fun startMidi() {
         JavaMidi.allDevices().forEach {
             ignoreException<MidiUnavailableException> {
-                logD("${it.details}\n")
                 it.open()
                 it.transmitter.receiver = instrumentReceiver
             }
@@ -137,19 +135,6 @@ class App : Application() {
         logD("Initializing...")
         synth = Synth().create()
 
-        JavaAudio.allDataLines().forEach {
-            logD("${it.details}\n")
-            logD("${it.mixer?.details}\n")
-        }
-
-        GlobalScope.launch {
-            val buffer = ByteArray(BUFFER_SIZE)
-            while (true) {
-                //    inputLine.read(buffer, 0, BUFFER_SIZE)
-                //    outputLine.write(buffer, 0, BUFFER_SIZE)
-            }
-        }
-
         val buffer = ByteArray(BUFFER_SIZE)
         val readLine = ReadableLine(inputLine)
         val writeLine = WritableLine(outputLine)
@@ -164,9 +149,6 @@ class App : Application() {
             delay(1000)
             logD(thread.isAlive)
 
-            AppMixer.allMixers().forEach { logD("${it.details}\n") }
-            AppMixer.allMidiDevices().forEach { logD("${it.details}\n") }
-            AppMixer.allDataLines().forEach { logD("${it.details}\n") }
         }
 
     }
@@ -195,5 +177,10 @@ fun playNote(noteNumber: Int): ByteArray {
 }
 
 fun main() {
-    Application.launch(App::class.java)
+    //Application.launch(App::class.java)
+    AudioMixer.allUsableAudioDevices().forEach { logD("${it.details}\n") }
+    AudioMixer.allReadableDataLines().forEach { logD("${it.details}\n") }
+    AudioMixer.allWriteableDataLines().forEach { logD("${it.details}\n") }
+    MidiMixer.midiInDevices().forEach { logD("${it.details}\n") }
+    MidiMixer.midiOutDevices().forEach { logD("${it.details}\n") }
 }

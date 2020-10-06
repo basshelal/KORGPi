@@ -15,7 +15,8 @@ inline fun Mixer.allLines(): List<Line> {
 
 inline val Mixer.details: String
     get() = mixerInfo.let {
-        """Type: ${this.javaClass.simpleName}
+        """Mixer:
+        |type: ${this.javaClass.simpleName}
         |name: ${it.name}
         |version: ${it.version}
         |vendor: ${it.vendor}
@@ -30,7 +31,9 @@ inline val Line.mixer: Mixer?
 
 inline val DataLine.details: String
     get() = (lineInfo as DataLine.Info).let {
-        """Type: ${this.javaClass.simpleName}
+        """DataLine:
+        |type: ${this.javaClass.simpleName}
+        |mixer name: ${this.mixer?.mixerInfo?.name}
         |formats: ${it.formats.size}
         |min buffer size: ${it.minBufferSize}
         |max buffer size: ${it.maxBufferSize}

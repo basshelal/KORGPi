@@ -23,8 +23,10 @@ inline val now: Long get() = System.currentTimeMillis()
 
 inline val nowNanos: Long get() = System.nanoTime()
 
+inline val Any?.simpleClassName: String get() = this?.javaClass?.simpleName ?: "null"
+
 inline fun ignoreExceptions(printStackTrace: Boolean = false, func: () -> Unit) =
-    ignoreException<Throwable>(printStackTrace, func)
+        ignoreException<Throwable>(printStackTrace, func)
 
 inline fun <reified T : Throwable> ignoreException(printStackTrace: Boolean = false, func: () -> Unit) {
     try {
