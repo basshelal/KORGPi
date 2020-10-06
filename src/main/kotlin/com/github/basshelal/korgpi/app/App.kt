@@ -1,7 +1,10 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package com.github.basshelal.korgpi
+package com.github.basshelal.korgpi.app
 
+import com.github.basshelal.korgpi.DEFAULT_FORMAT
+import com.github.basshelal.korgpi.Key
+import com.github.basshelal.korgpi.SAMPLE_RATE
 import com.github.basshelal.korgpi.audio.JavaAudio
 import com.github.basshelal.korgpi.audio.ReadWriteLineThread
 import com.github.basshelal.korgpi.audio.ReadableLine
