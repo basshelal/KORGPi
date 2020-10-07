@@ -4,7 +4,7 @@
 
 package com.github.basshelal.korgpi.extensions
 
-import com.github.basshelal.korgpi.audio.JavaAudio
+import com.github.basshelal.korgpi.mixers.AudioMixer
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.Line
 import javax.sound.sampled.Mixer
@@ -27,7 +27,7 @@ inline val Mixer.details: String
     }
 
 inline val Line.mixer: Mixer?
-    get() = JavaAudio.allMixers().find { this in it.allLines() }
+    get() = AudioMixer.allAudioDevices().find { this in it.allLines() }
 
 inline val DataLine.details: String
     get() = (lineInfo as DataLine.Info).let {

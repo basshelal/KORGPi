@@ -1,28 +1,58 @@
 package com.github.basshelal.korgpi.audio
 
-import com.github.basshelal.korgpi.extensions.now
+import com.github.basshelal.korgpi.log.Timer
 import com.github.basshelal.korgpi.log.logD
+import java.lang.Thread.MAX_PRIORITY
 
 // Annotation for functions to indicate real time critical code
 @Target(AnnotationTarget.FUNCTION)
 annotation class RealTimeCritical
 
+// Wrapper for Java Threads
+abstract class BaseThread {
+
+    protected val thread: Thread = object : Thread() {
+        override fun run() {
+            while (true) {
+                if (!isRunning) break
+                onRun()
+            }
+            onKilled()
+        }
+    }
+
+    val id: Long = thread.id
+
+    open var isRunning: Boolean = true
+
+    open fun start() = thread.start()
+
+    open fun kill() {
+        isRunning = false
+    }
+
+    abstract fun onRun()
+
+    open fun onKilled() {}
+
+}
+
 // A thread in charge of reading from or writing to any kind of audio buffer(s).
 // Code run here is real time critical
 // Audio Threads are by default max priority
-abstract class AudioThread : Thread() {
+abstract class AudioThread : BaseThread() {
 
     init {
-        this.priority = MAX_PRIORITY
+        this.thread.priority = MAX_PRIORITY
     }
 
     abstract val buffer: ByteArray
 
     @RealTimeCritical
-    abstract override fun run()
+    abstract override fun onRun()
 }
 
-abstract class LineThread<T : JavaAudioLine<*>>(val line: T) : AudioThread()
+abstract class LineThread<T : AudioLine<*>>(val line: T) : AudioThread()
 
 class WritableLineThread(
         line: WritableLine,
@@ -30,10 +60,8 @@ class WritableLineThread(
 ) : LineThread<WritableLine>(line) {
 
     @RealTimeCritical
-    override fun run() {
-        runForever {
-            line.line.write(buffer, 0, buffer.size)
-        }
+    override fun onRun() {
+        line.line.write(buffer, 0, buffer.size)
     }
 }
 
@@ -43,10 +71,8 @@ class ReadableLineThread(
 ) : LineThread<ReadableLine>(line) {
 
     @RealTimeCritical
-    override fun run() {
-        runForever {
-            line.line.read(buffer, 0, buffer.size)
-        }
+    override fun onRun() {
+        line.line.read(buffer, 0, buffer.size)
     }
 }
 
@@ -56,19 +82,15 @@ class ReadWriteLineThread(
         override val buffer: ByteArray
 ) : AudioThread() {
 
-    var running = true
+    init {
+        Timer.resolution = Timer.Resolution.MILLI
+    }
 
     @RealTimeCritical
-    override fun run() {
-        runForever {
-            logD(now)
-            if (!running) return
-            readableLine.line.read(buffer, 0, buffer.size)
-            writableLine.line.write(buffer, 0, buffer.size)
-        }
+    override fun onRun() {
+        Timer.start()
+        readableLine.line.read(buffer, 0, buffer.size)
+        writableLine.line.write(buffer, 0, buffer.size)
+        logD("${Timer.stop()} millis")
     }
-}
-
-inline fun runForever(block: () -> Unit) {
-    while (true) block()
 }

@@ -16,7 +16,6 @@ import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.extensions.ignoreException
 import com.github.basshelal.korgpi.extensions.now
 import com.github.basshelal.korgpi.log.logD
-import com.github.basshelal.korgpi.midi.JavaMidi
 import com.github.basshelal.korgpi.midi.SimpleReceiver
 import com.github.basshelal.korgpi.mixers.AudioMixer
 import com.github.basshelal.korgpi.mixers.MidiMixer
@@ -43,17 +42,15 @@ import javax.sound.sampled.AudioSystem
 import kotlin.math.PI
 import kotlin.math.sin
 
-// (Bytes per frame * Sample Rate) / 100 (for 10ms latency)
-
 val BUFFER_SIZE = ((2 * SAMPLE_RATE) / 10F).I
 
 val outputLine = AudioSystem.getSourceDataLine(DEFAULT_FORMAT).also {
-    it.open(it.format, BUFFER_SIZE)
+    it.open(DEFAULT_FORMAT, BUFFER_SIZE)
     it.start()
 }
 
 val inputLine = AudioSystem.getTargetDataLine(DEFAULT_FORMAT).also {
-    it.open(it.format, BUFFER_SIZE)
+    it.open(DEFAULT_FORMAT, BUFFER_SIZE)
     it.start()
 }
 
@@ -88,7 +85,7 @@ class Synth {
     }
 
     private fun startMidi() {
-        JavaMidi.allDevices().forEach {
+        MidiMixer.allMidiDevices().forEach {
             ignoreException<MidiUnavailableException> {
                 it.open()
                 it.transmitter.receiver = instrumentReceiver
@@ -97,7 +94,7 @@ class Synth {
     }
 
     private fun stopMidi() {
-        JavaMidi.allDevices().forEach {
+        MidiMixer.allMidiDevices().forEach {
             if (it.isOpen) it.close()
         }
     }
@@ -143,12 +140,9 @@ class App : Application() {
 
         GlobalScope.launch {
             delay(5000)
-            logD(thread.isAlive)
-            thread.running = false
+            thread.kill()
             logD("Killed at $now")
             delay(1000)
-            logD(thread.isAlive)
-
         }
 
     }
@@ -177,10 +171,11 @@ fun playNote(noteNumber: Int): ByteArray {
 }
 
 fun main() {
-    //Application.launch(App::class.java)
+    logD("Buffer Size: $BUFFER_SIZE")
     AudioMixer.allUsableAudioDevices().forEach { logD("${it.details}\n") }
     AudioMixer.allReadableDataLines().forEach { logD("${it.details}\n") }
     AudioMixer.allWriteableDataLines().forEach { logD("${it.details}\n") }
     MidiMixer.midiInDevices().forEach { logD("${it.details}\n") }
     MidiMixer.midiOutDevices().forEach { logD("${it.details}\n") }
+    Application.launch(App::class.java)
 }
