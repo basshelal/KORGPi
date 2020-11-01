@@ -1,7 +1,6 @@
 package com.github.basshelal.korgpi.audio
 
 import com.github.basshelal.korgpi.log.Timer
-import com.github.basshelal.korgpi.log.logD
 import java.lang.Thread.MAX_PRIORITY
 
 // Annotation for functions to indicate real time critical code
@@ -91,6 +90,6 @@ class ReadWriteLineThread(
         Timer.start()
         readableLine.line.read(buffer, 0, buffer.size)
         writableLine.line.write(buffer, 0, buffer.size)
-        logD("${Timer.stop()} millis")
+        //logD("${Timer.stop()} millis")
     }
 }
