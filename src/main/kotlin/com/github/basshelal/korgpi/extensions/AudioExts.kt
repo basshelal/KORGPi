@@ -27,7 +27,7 @@ inline val Mixer.details: String
     }
 
 inline val Line.mixer: Mixer?
-    get() = AudioMixer.allAudioDevices().find { this in it.allLines() }
+    get() = AudioMixer.allJMixers().find { this in it.allLines() }
 
 inline val DataLine.details: String
     get() = (lineInfo as DataLine.Info).let {

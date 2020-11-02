@@ -55,23 +55,23 @@ abstract class LineThread<T : AudioLine<*>>(val line: T) : AudioThread()
 
 class WritableLineThread(
         line: WritableLine,
-        override val buffer: ByteArray = ByteArray(line.line.bufferSize)
+        override val buffer: ByteArray = ByteArray(line.jLine.bufferSize)
 ) : LineThread<WritableLine>(line) {
 
     @RealTimeCritical
     override fun onRun() {
-        line.line.write(buffer, 0, buffer.size)
+        line.jLine.write(buffer, 0, buffer.size)
     }
 }
 
 class ReadableLineThread(
         line: ReadableLine,
-        override val buffer: ByteArray = ByteArray(line.line.bufferSize)
+        override val buffer: ByteArray = ByteArray(line.jLine.bufferSize)
 ) : LineThread<ReadableLine>(line) {
 
     @RealTimeCritical
     override fun onRun() {
-        line.line.read(buffer, 0, buffer.size)
+        line.jLine.read(buffer, 0, buffer.size)
     }
 }
 
@@ -88,8 +88,8 @@ class ReadWriteLineThread(
     @RealTimeCritical
     override fun onRun() {
         Timer.start()
-        readableLine.line.read(buffer, 0, buffer.size)
-        writableLine.line.write(buffer, 0, buffer.size)
+        readableLine.jLine.read(buffer, 0, buffer.size)
+        writableLine.jLine.write(buffer, 0, buffer.size)
         //logD("${Timer.stop()} millis")
     }
 }

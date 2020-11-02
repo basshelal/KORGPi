@@ -1,5 +1,7 @@
 package com.github.basshelal.korgpi.mixers
 
+import com.github.basshelal.korgpi.audio.AudioDevice
+import com.github.basshelal.korgpi.audio.JMixer
 import com.github.basshelal.korgpi.extensions.allLines
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
@@ -11,11 +13,13 @@ import javax.sound.sampled.TargetDataLine
 // For Audio Devices
 object AudioMixer {
 
-    fun allAudioDevices(): List<Mixer> = AudioSystem.getMixerInfo().map { AudioSystem.getMixer(it) }
+    fun allJMixers(): List<JMixer> = AudioSystem.getMixerInfo().map { AudioSystem.getMixer(it) }
 
-    fun allUsableAudioDevices(): List<Mixer> = allAudioDevices().filter { it.allLines().isNotEmpty() }
+    fun allAudioDevices(): List<AudioDevice> = allJMixers().map { AudioDevice(it) }
 
-    fun allLines(): List<Line> = allAudioDevices().flatMap { it.allLines() }
+    fun allUsableAudioDevices(): List<Mixer> = allJMixers().filter { it.allLines().isNotEmpty() }
+
+    fun allLines(): List<Line> = allJMixers().flatMap { it.allLines() }
 
     fun allDataLines(): List<DataLine> = allLines().filterIsInstance<DataLine>()
 
