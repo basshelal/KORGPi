@@ -30,4 +30,5 @@ dependencies {
     testImplementation(kotlin("test-junit5"))
     implementation("no.tornado:tornadofx:1.7.20")
     implementation("com.jfoenix:jfoenix:9.0.10")
+    implementation("com.diogonunes:JColor:5.0.0")
 }

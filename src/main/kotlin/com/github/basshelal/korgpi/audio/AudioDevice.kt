@@ -2,34 +2,35 @@
 
 package com.github.basshelal.korgpi.audio
 
+import javax.sound.sampled.SourceDataLine
+import javax.sound.sampled.TargetDataLine
+
 typealias JMixer = javax.sound.sampled.Mixer
 typealias JMixerInfo = javax.sound.sampled.Mixer.Info
 
 // Wrapper for JavaMixer
 class AudioDevice(val jMixer: JMixer) {
 
-    val availableReadableLines: List<ReadableLine>
+    val isOpen: Boolean get() = jMixer.isOpen
+
+    val availableReadableLines: List<JLineInfo>
         get() {
-            jMixer.targetLineInfo
-            return emptyList()
+            return jMixer.targetLineInfo.asList()
         }
 
-    val availableWritableLines: List<WritableLine>
+    val availableWritableLines: List<JLineInfo>
         get() {
-            jMixer.sourceLineInfo
-            return emptyList()
+            return jMixer.sourceLineInfo.asList()
         }
 
     val openReadableLines: List<ReadableLine>
         get() {
-            jMixer.targetLines
-            return emptyList()
+            return jMixer.targetLines.filterIsInstance<TargetDataLine>().map { ReadableLine(it) }
         }
 
     val openWritableLines: List<WritableLine>
         get() {
-            jMixer.sourceLines
-            return emptyList()
+            return jMixer.sourceLines.filterIsInstance<SourceDataLine>().map { WritableLine(it) }
         }
 
     val jInfo: JMixerInfo
@@ -38,8 +39,16 @@ class AudioDevice(val jMixer: JMixer) {
         }
 
     val details: String
-        get() {
-            return ""
-        }
-
+        get() = """Audio Device:
+        |  name: ${jInfo.name}
+        |  type: ${jMixer.javaClass.simpleName}
+        |  version: ${jInfo.version}
+        |  vendor: ${jInfo.vendor}
+        |  description: ${jInfo.description}
+        |  isOpen: ${isOpen}
+        |  available readable lines: ${availableReadableLines.size}
+        |  available writable lines: ${availableWritableLines.size}
+        |  open readable lines: ${openReadableLines.size}
+        |  open writable lines: ${openWritableLines.size}
+        """.trimMargin()
 }

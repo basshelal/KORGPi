@@ -94,12 +94,12 @@ fun playNote(noteNumber: Int): ByteArray {
 
 fun main() {
     logD("All Audio Devices")
-    AudioMixer.allJMixers().forEach {
+    AudioMixer.allAudioDevices().forEach {
         logD("${it.details}\n")
         logD("Writable Lines:")
-        it.sourceLineInfo.forEach { logD("\t$it\n") }
+        it.jMixer.sourceLineInfo.forEach { logD("\t$it") }
         logD("Readable Lines:")
-        it.targetLineInfo.forEach { logD("\t$it\n") }
+        it.jMixer.targetLineInfo.forEach { logD("\t$it") }
     }
     logD("All Usable Audio Devices")
     AudioMixer.allUsableAudioDevices().forEach { logD("${it.details}\n") }

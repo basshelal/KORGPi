@@ -4,6 +4,7 @@ import javax.sound.sampled.SourceDataLine
 import javax.sound.sampled.TargetDataLine
 
 typealias JLine = javax.sound.sampled.Line
+typealias JLineInfo = javax.sound.sampled.Line.Info
 
 abstract class AudioLine<T : JLine>(val jLine: T)
 
