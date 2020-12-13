@@ -94,22 +94,28 @@ fun playNote(noteNumber: Int): ByteArray {
 
 fun main() {
     logD("All Audio Devices")
+    logD("-------------------------------------------------------")
     AudioMixer.allAudioDevices().forEach {
         logD("${it.details}\n")
-        logD("Writable Lines:")
-        it.jMixer.sourceLineInfo.forEach { logD("\t$it") }
-        logD("Readable Lines:")
-        it.jMixer.targetLineInfo.forEach { logD("\t$it") }
+        logD("\tWritable Lines:")
+        it.jMixer.sourceLineInfo.forEach { logD("\t\t$it") }
+        logD("\tReadable Lines:")
+        it.jMixer.targetLineInfo.forEach { logD("\t\t$it") }
     }
     logD("All Usable Audio Devices")
+    logD("-------------------------------------------------------")
     AudioMixer.allUsableAudioDevices().forEach { logD("${it.details}\n") }
     logD("All Readable Data Lines")
+    logD("-------------------------------------------------------")
     AudioMixer.allReadableDataLines().forEach { logD("${it.details}\n") }
     logD("All Writeable Data Lines")
+    logD("-------------------------------------------------------")
     AudioMixer.allWriteableDataLines().forEach { logD("${it.details}\n") }
     logD("Midi In Devices")
+    logD("-------------------------------------------------------")
     MidiMixer.midiInDevices().forEach { logD("${it.details}\n") }
     logD("Midi Out Devices")
+    logD("-------------------------------------------------------")
     MidiMixer.midiOutDevices().forEach { logD("${it.details}\n") }
     logD("Launching Application")
     // Application.launch(App::class.java)
