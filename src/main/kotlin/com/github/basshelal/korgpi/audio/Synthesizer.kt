@@ -26,6 +26,34 @@ package com.github.basshelal.korgpi.audio
 //  blocks all over this bitch to ensure no CMEs or any weird concurrency issues
 class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableListOf()) {
 
+    // protected :
+    //==============================================================================
+    /** This is used to control access to the rendering callback and the note trigger methods. */
+    // CriticalSection lock;
+    // OwnedArray<SynthesiserVoice> voices;
+    // ReferenceCountedArray<SynthesiserSound> sounds;
+    /** The last pitch-wheel values for each midi channel. */
+    // int lastPitchWheelValues [16];
+
+    //private:
+    //==============================================================================
+    // double sampleRate = 0;
+    // uint32 lastNoteOnCounter = 0;
+    // int minimumSubBlockSize = 32;
+    // bool subBlockSubdivisionIsStrict = false;
+    // bool shouldStealNotes = true;
+    // BigInteger sustainPedalsDown;
+    // template <typename floatType>
+    // void processNextBlock (AudioBuffer<floatType>&, const MidiBuffer&, int startSample, int numSamples);
+    // #if JUCE_CATCH_DEPRECATED_CODE_MISUSE
+    // // Note the new parameters for these methods.
+    // virtual int findFreeVoice (const bool) const { return 0; }
+    // virtual int noteOff (int, int, int) { return 0; }
+    // virtual int findFreeVoice (SynthesiserSound*, const bool) { return 0; }
+    // virtual int findVoiceToSteal (SynthesiserSound*) const { return 0; }
+    // #endif
+    // JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Synthesiser)
+
 
     /** Deletes all voices. */
     fun clearVoices() {}
@@ -251,14 +279,6 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
      */
     fun setMinimumRenderingSubdivisionSize(/*int numSamples, bool shouldBeStrict = false*/) {}
 
-    // protected :
-    //==============================================================================
-    /** This is used to control access to the rendering callback and the note trigger methods. */
-    // CriticalSection lock;
-    // OwnedArray<SynthesiserVoice> voices;
-    // ReferenceCountedArray<SynthesiserSound> sounds;
-    /** The last pitch-wheel values for each midi channel. */
-    // int lastPitchWheelValues [16];
     /** Renders the voices for the given range.
     By default this just calls renderNextBlock() on each voice, but you may need
     to override it to handle custom cases.
@@ -300,24 +320,6 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     /** Can be overridden to do custom handling of incoming midi events. */
     /*virtual*/ fun handleMidiEvent(/*const MidiMessage&*/) {}
 
-    //private:
-    //==============================================================================
-    // double sampleRate = 0;
-    // uint32 lastNoteOnCounter = 0;
-    // int minimumSubBlockSize = 32;
-    // bool subBlockSubdivisionIsStrict = false;
-    // bool shouldStealNotes = true;
-    // BigInteger sustainPedalsDown;
-    // template <typename floatType>
-    // void processNextBlock (AudioBuffer<floatType>&, const MidiBuffer&, int startSample, int numSamples);
-    // #if JUCE_CATCH_DEPRECATED_CODE_MISUSE
-    // // Note the new parameters for these methods.
-    // virtual int findFreeVoice (const bool) const { return 0; }
-    // virtual int noteOff (int, int, int) { return 0; }
-    // virtual int findFreeVoice (SynthesiserSound*, const bool) { return 0; }
-    // virtual int findVoiceToSteal (SynthesiserSound*) const { return 0; }
-    // #endif
-    // JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Synthesiser)
 }
 
 /**
@@ -328,6 +330,17 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
  * @see SynthesizerSound
  */
 class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
+
+    // private :
+    //==============================================================================
+    // friend class Synthesiser;
+    // double currentSampleRate = 44100.0;
+    // int currentlyPlayingNote = -1, currentPlayingMidiChannel = 0;
+    // uint32 noteOnTime = 0;
+    // SynthesiserSound::Ptr currentlyPlayingSound;
+    // bool keyIsDown = false, sustainPedalDown = false, sostenutoPedalDown = false;
+    // AudioBuffer<float> tempBuffer;
+    // JUCE_LEAK_DETECTOR (SynthesiserVoice)
 
     /**
      * Returns the midi note that this voice is currently playing.
@@ -378,7 +391,7 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
      * be overridden for more advanced checking.
      */
     fun isVoiceActive(): Boolean = false
-
+    /*{ return getCurrentlyPlayingNote() >= 0; }*/
 
     /**
      * Called to let the voice know that the pitch wheel has been moved.
@@ -419,7 +432,15 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
     involve rendering as little as 1 sample at a time. In between rendering callbacks,
     the voice's methods will be called to tell it about note and controller events.
      */
-    fun renderNextBlock(/*AudioBuffer<float>& outputBuffer, int startSample, int numSamples*/) {}
+    fun renderNextBlock(/*AudioBuffer<float>& outputBuffer, int startSample, int numSamples*/) {
+        /*AudioBuffer<double> subBuffer (outputBuffer.getArrayOfWritePointers(),
+        outputBuffer.getNumChannels(),
+        startSample, numSamples);
+
+        tempBuffer.makeCopyOf (subBuffer, true);
+        renderNextBlock (tempBuffer, 0, numSamples);
+        subBuffer.makeCopyOf (tempBuffer, true);*/
+    }
 
     /** A double-precision version of renderNextBlock() */
     // fun renderNextBlock (/*AudioBuffer<double>& outputBuffer,int startSample,int numSamples*/) {}
@@ -432,14 +453,18 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
     This method is called by the synth, and subclasses can access the current rate with
     the currentSampleRate member.
      */
-    fun setCurrentPlaybackSampleRate(/*double newRate*/) {}
+    fun setCurrentPlaybackSampleRate(/*double newRate*/) {
+        /*currentSampleRate = newRate;*/
+    }
 
     /** Returns true if the voice is currently playing a sound which is mapped to the given
     midi channel.
 
     If it's not currently playing, this will return false.
      */
-    fun isPlayingChannel(/*int midiChannel*/) {}
+    fun isPlayingChannel(/*int midiChannel*/) {
+        /*return currentPlayingMidiChannel == midiChannel;*/
+    }
 
     /** Returns the current target sample rate at which rendering is being done.
     Subclasses may need to know this so that they can pitch things correctly.
@@ -477,6 +502,7 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
 
     /** Returns true if this voice started playing its current note before the other voice did. */
     fun wasStartedBefore(/*const SynthesiserVoice& other*/): Boolean = false
+    /*{ return noteOnTime < other.noteOnTime; }*/
 
     /** Resets the state of this voice after a sound has finished playing.
 
@@ -490,18 +516,11 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
     It can also be called at any time during the render callback if the sound happens
     to have finished, e.g. if it's playing a sample and the sample finishes.
      */
-    /*protected*/  fun clearCurrentNote() {}
-
-    // private :
-    //==============================================================================
-    // friend class Synthesiser;
-    // double currentSampleRate = 44100.0;
-    // int currentlyPlayingNote = -1, currentPlayingMidiChannel = 0;
-    // uint32 noteOnTime = 0;
-    // SynthesiserSound::Ptr currentlyPlayingSound;
-    // bool keyIsDown = false, sustainPedalDown = false, sostenutoPedalDown = false;
-    // AudioBuffer<float> tempBuffer;
-    // JUCE_LEAK_DETECTOR (SynthesiserVoice)
+    /*protected*/  fun clearCurrentNote() {
+        /*currentlyPlayingNote = -1;
+        currentlyPlayingSound = nullptr;
+        currentPlayingMidiChannel = 0;*/
+    }
 
 }
 
@@ -530,12 +549,12 @@ abstract class SynthesizerSound {
      * The Synthesizer will use this information when deciding which sounds to trigger
      * for a given note.
      */
-    abstract fun appliesToChannel(channel: Int): Boolean
+    abstract fun appliesToChannel(midiChannel: Int): Boolean
 
     companion object {
         val EMPTY = object : SynthesizerSound() {
             override fun appliesToNote(midiNote: Int) = false
-            override fun appliesToChannel(channel: Int) = false
+            override fun appliesToChannel(midiChannel: Int) = false
         }
     }
 }

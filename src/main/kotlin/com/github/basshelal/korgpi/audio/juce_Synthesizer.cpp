@@ -23,55 +23,6 @@
 namespace juce
 {
 
-SynthesiserSound::SynthesiserSound() {}
-SynthesiserSound::~SynthesiserSound() {}
-
-//==============================================================================
-SynthesiserVoice::SynthesiserVoice() {}
-SynthesiserVoice::~SynthesiserVoice() {}
-
-bool SynthesiserVoice::isPlayingChannel (const int midiChannel) const
-{
-    return currentPlayingMidiChannel == midiChannel;
-}
-
-void SynthesiserVoice::setCurrentPlaybackSampleRate (const double newRate)
-{
-    currentSampleRate = newRate;
-}
-
-bool SynthesiserVoice::isVoiceActive() const
-{
-    return getCurrentlyPlayingNote() >= 0;
-}
-
-void SynthesiserVoice::clearCurrentNote()
-{
-    currentlyPlayingNote = -1;
-    currentlyPlayingSound = nullptr;
-    currentPlayingMidiChannel = 0;
-}
-
-void SynthesiserVoice::aftertouchChanged (int) {}
-void SynthesiserVoice::channelPressureChanged (int) {}
-
-bool SynthesiserVoice::wasStartedBefore (const SynthesiserVoice& other) const noexcept
-{
-    return noteOnTime < other.noteOnTime;
-}
-
-void SynthesiserVoice::renderNextBlock (AudioBuffer<double>& outputBuffer,
-                                        int startSample, int numSamples)
-{
-    AudioBuffer<double> subBuffer (outputBuffer.getArrayOfWritePointers(),
-                                   outputBuffer.getNumChannels(),
-                                   startSample, numSamples);
-
-    tempBuffer.makeCopyOf (subBuffer, true);
-    renderNextBlock (tempBuffer, 0, numSamples);
-    subBuffer.makeCopyOf (tempBuffer, true);
-}
-
 //==============================================================================
 Synthesiser::Synthesiser()
 {
