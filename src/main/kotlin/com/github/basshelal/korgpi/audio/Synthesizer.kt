@@ -1,5 +1,7 @@
 package com.github.basshelal.korgpi.audio
 
+import com.github.basshelal.korgpi.log.logD
+
 // JUCE Synthesizer source here:
 // https://github.com/juce-framework/JUCE/tree/master/modules/juce_audio_basics/synthesisers
 
@@ -44,7 +46,6 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     // bool shouldStealNotes = true;
     // BigInteger sustainPedalsDown;
     // template <typename floatType>
-    // void processNextBlock (AudioBuffer<floatType>&, const MidiBuffer&, int startSample, int numSamples);
     // #if JUCE_CATCH_DEPRECATED_CODE_MISUSE
     // // Note the new parameters for these methods.
     // virtual int findFreeVoice (const bool) const { return 0; }
@@ -54,15 +55,26 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     // #endif
     // JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Synthesiser)
 
+    init {
+        logD("Remove me when implemented")
+        /*for (int i = 0; i < numElementsInArray(lastPitchWheelValues); ++i)
+        lastPitchWheelValues[i] = 0x2000;*/
+    }
 
     /** Deletes all voices. */
-    fun clearVoices() {}
+    fun clearVoices() {
+        /*const ScopedLock sl (lock);
+        voices.clear();*/
+    }
 
     /** Returns the number of voices that have been added. */
     fun getNumVoices(): Int = 0
 
     /** Returns one of the voices that have been added. */
-    fun getVoice(/*int index*/)/*: SynthesizerVoice*/ {}
+    fun getVoice(/*int index*/)/*: SynthesizerVoice*/ {
+        /*const ScopedLock sl (lock);
+        return voices [index];*/
+    }
 
     /** Adds a new voice to the synth.
 
@@ -72,14 +84,24 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     it later on when no longer needed. The caller should not retain a pointer to the
     voice.
      */
-    fun addVoice(/*SynthesiserVoice* newVoice*/) /*: SynthesizerVoice*/ {}
+    fun addVoice(/*SynthesiserVoice* newVoice*/) /*: SynthesizerVoice*/ {
+        /*const ScopedLock sl (lock);
+        newVoice->setCurrentPlaybackSampleRate (sampleRate);
+        return voices.add (newVoice);*/
+    }
 
     /** Deletes one of the voices. */
-    fun removeVoice(/*int index*/) {}
+    fun removeVoice(/*int index*/) {
+        /*const ScopedLock sl (lock);
+        voices.remove (index);*/
+    }
 
     //==============================================================================
     /** Deletes all sounds. */
-    fun clearSounds() {}
+    fun clearSounds() {
+        /*const ScopedLock sl (lock);
+        sounds.clear();*/
+    }
 
     /** Returns the number of sounds that have been added to the synth. */
     fun getNumSounds(): Int = 0
@@ -92,10 +114,16 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     The object passed in is reference counted, so will be deleted when the
     synthesiser and all voices are no longer using it.
      */
-    fun addSound(/*const SynthesiserSound::Ptr& newSound*/)/*: SynthesizerSound*/ {}
+    fun addSound(/*const SynthesiserSound::Ptr& newSound*/)/*: SynthesizerSound*/ {
+        /*const ScopedLock sl (lock);
+        return sounds.add (newSound);*/
+    }
 
     /** Removes and deletes one of the sounds. */
-    fun removeSound(/*int index*/) {}
+    fun removeSound(/*int index*/) {
+        /*const ScopedLock sl (lock);
+        sounds.remove (index);*/
+    }
 
     //==============================================================================
     /** If set to true, then the synth will try to take over an existing voice if
@@ -104,7 +132,9 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     The value of this boolean is passed into findFreeVoice(), so the result will
     depend on the implementation of this method.
      */
-    fun setNoteStealingEnabled(/*bool shouldStealNotes*/) {}
+    fun setNoteStealingEnabled(/*bool shouldStealNotes*/) {
+        /*shouldStealNotes = shouldSteal;*/
+    }
 
     /** Returns true if note-stealing is enabled.
     @see setNoteStealingEnabled
@@ -125,7 +155,24 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
 
     The midiChannel parameter is the channel, between 1 and 16 inclusive.
      */
-    /*virtual*/ fun noteOn(/*int midiChannel,int midiNoteNumber,float velocity*/) {}
+    /*virtual*/ fun noteOn(/*int midiChannel,int midiNoteNumber,float velocity*/) {
+        /*const ScopedLock sl (lock);
+
+        for (auto* sound : sounds)
+        {
+            if (sound->appliesToNote (midiNoteNumber) && sound->appliesToChannel (midiChannel))
+            {
+                // If hitting a note that's still ringing, stop it first (it could be
+                // still playing because of the sustain or sostenuto pedal).
+                for (auto* voice : voices)
+                if (voice->getCurrentlyPlayingNote() == midiNoteNumber && voice->isPlayingChannel (midiChannel))
+                stopVoice (voice, 1.0f, true);
+
+                startVoice (findFreeVoice (sound, midiChannel, midiNoteNumber, shouldStealNotes),
+                        sound, midiChannel, midiNoteNumber, velocity);
+            }
+        }*/
+    }
 
     /** Triggers a note-off event.
 
@@ -139,7 +186,30 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
 
     The midiChannel parameter is the channel, between 1 and 16 inclusive.
      */
-    /*virtual*/ fun noteOff(/*int midiChannel, int midiNoteNumber, float velocity, bool allowTailOff*/) {}
+    /*virtual*/ fun noteOff(/*int midiChannel, int midiNoteNumber, float velocity, bool allowTailOff*/) {
+        /*const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        {
+            if (voice->getCurrentlyPlayingNote() == midiNoteNumber
+            && voice->isPlayingChannel (midiChannel))
+            {
+                if (auto sound = voice->getCurrentlyPlayingSound())
+                {
+                    if (sound->appliesToNote (midiNoteNumber)
+                    && sound->appliesToChannel (midiChannel))
+                    {
+                        jassert (! voice->keyIsDown || voice->isSustainPedalDown() == sustainPedalsDown [midiChannel]);
+
+                        voice->setKeyDown (false);
+
+                        if (! (voice->isSustainPedalDown() || voice->isSostenutoPedalDown()))
+                        stopVoice (voice, velocity, allowTailOff);
+                    }
+                }
+            }
+        }*/
+    }
 
     /** Turns off all notes.
 
@@ -155,7 +225,15 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     This method will be called automatically according to the midi data passed into
     renderNextBlock(), but may be called explicitly too.
      */
-    /*virtual*/ fun allNotesOff(/*int midiChannel, bool allowTailOff*/) {}
+    /*virtual*/ fun allNotesOff(/*int midiChannel, bool allowTailOff*/) {
+        /*const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        if (midiChannel <= 0 || voice->isPlayingChannel (midiChannel))
+        voice->stopNote (1.0f, allowTailOff);
+
+        sustainPedalsDown.clear();*/
+    }
 
     /** Sends a pitch-wheel message to any active voices.
 
@@ -168,7 +246,13 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     @param midiChannel          the midi channel, from 1 to 16 inclusive
     @param wheelValue           the wheel position, from 0 to 0x3fff, as returned by MidiMessage::getPitchWheelValue()
      */
-    /*virtual*/ fun handlePitchWheel(/*int midiChannel,int wheelValue*/) {}
+    /*virtual*/ fun handlePitchWheel(/*int midiChannel,int wheelValue*/) {
+        /*const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        if (midiChannel <= 0 || voice->isPlayingChannel (midiChannel))
+        voice->pitchWheelMoved (wheelValue);*/
+    }
 
     /** Sends a midi controller message to any active voices.
 
@@ -182,7 +266,21 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     @param controllerNumber     the midi controller type, as returned by MidiMessage::getControllerNumber()
     @param controllerValue      the midi controller value, between 0 and 127, as returned by MidiMessage::getControllerValue()
      */
-    /*virtual*/ fun handleController(/*int midiChannel, int controllerNumber, int controllerValue*/) {}
+    /*virtual*/ fun handleController(/*int midiChannel, int controllerNumber, int controllerValue*/) {
+        /*switch (controllerNumber)
+        {
+            case 0x40:  handleSustainPedal   (midiChannel, controllerValue >= 64); break;
+            case 0x42:  handleSostenutoPedal (midiChannel, controllerValue >= 64); break;
+            case 0x43:  handleSoftPedal      (midiChannel, controllerValue >= 64); break;
+            default:    break;
+        }
+
+        const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        if (midiChannel <= 0 || voice->isPlayingChannel (midiChannel))
+        voice->controllerMoved (controllerNumber, controllerValue);*/
+    }
 
     /** Sends an aftertouch message.
 
@@ -197,7 +295,14 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     @param aftertouchValue      the aftertouch value, between 0 and 127,
     as returned by MidiMessage::getAftertouchValue()
      */
-    /*virtual*/ fun handleAftertouch(/*int midiChannel, int midiNoteNumber, int aftertouchValue*/) {}
+    /*virtual*/ fun handleAftertouch(/*int midiChannel, int midiNoteNumber, int aftertouchValue*/) {
+        /*const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        if (voice->getCurrentlyPlayingNote() == midiNoteNumber
+        && (midiChannel <= 0 || voice->isPlayingChannel (midiChannel)))
+        voice->aftertouchChanged (aftertouchValue);*/
+    }
 
     /** Sends a channel pressure message.
 
@@ -211,22 +316,75 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     @param channelPressureValue     the pressure value, between 0 and 127, as returned
     by MidiMessage::getChannelPressureValue()
      */
-    /*virtual*/ fun handleChannelPressure(/*int midiChannel, int channelPressureValue*/) {}
+    /*virtual*/ fun handleChannelPressure(/*int midiChannel, int channelPressureValue*/) {
+        /*const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        if (midiChannel <= 0 || voice->isPlayingChannel (midiChannel))
+        voice->channelPressureChanged (channelPressureValue);*/
+    }
 
     /** Handles a sustain pedal event. */
-    /*virtual*/ fun handleSustainPedal(/*int midiChannel, bool isDown*/) {}
+    /*virtual*/ fun handleSustainPedal(/*int midiChannel, bool isDown*/) {
+        /*jassert (midiChannel > 0 && midiChannel <= 16);
+        const ScopedLock sl (lock);
+
+        if (isDown)
+        {
+            sustainPedalsDown.setBit (midiChannel);
+
+            for (auto* voice : voices)
+            if (voice->isPlayingChannel (midiChannel) && voice->isKeyDown())
+            voice->setSustainPedalDown (true);
+        }
+        else
+        {
+            for (auto* voice : voices)
+            {
+                if (voice->isPlayingChannel (midiChannel))
+                {
+                    voice->setSustainPedalDown (false);
+
+                    if (! (voice->isKeyDown() || voice->isSostenutoPedalDown()))
+                    stopVoice (voice, 1.0f, true);
+                }
+            }
+
+            sustainPedalsDown.clearBit (midiChannel);
+        }*/
+    }
 
     /** Handles a sostenuto pedal event. */
-    /*virtual*/ fun handleSostenutoPedal(/*int midiChannel, bool isDown*/) {}
+    /*virtual*/ fun handleSostenutoPedal(/*int midiChannel, bool isDown*/) {
+        /*jassert (midiChannel > 0 && midiChannel <= 16);
+        const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        {
+            if (voice->isPlayingChannel (midiChannel))
+            {
+                if (isDown)
+                    voice->setSostenutoPedalDown (true);
+                else if (voice->isSostenutoPedalDown())
+                stopVoice (voice, 1.0f, true);
+            }
+        }*/
+    }
 
     /** Can be overridden to handle soft pedal events. */
-    /*virtual*/ fun handleSoftPedal(/*int midiChannel, bool isDown*/) {}
+    /*virtual*/ fun handleSoftPedal(/*int midiChannel, bool isDown*/) {
+        /*ignoreUnused (midiChannel);
+        jassert (midiChannel > 0 && midiChannel <= 16);*/
+    }
 
     /** Can be overridden to handle an incoming program change message.
     The base class implementation of this has no effect, but you may want to make your
     own synth react to program changes.
      */
-    /*virtual*/ fun handleProgramChange(/*int midiChannel, int programNumber*/) {}
+    /*virtual*/ fun handleProgramChange(/*int midiChannel, int programNumber*/) {
+        /*ignoreUnused (midiChannel, programNumber);
+        jassert (midiChannel > 0 && midiChannel <= 16);*/
+    }
 
     //==============================================================================
     /** Tells the synthesiser what the sample rate is for the audio it's being used to render.
@@ -234,7 +392,71 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     This value is propagated to the voices so that they can use it to render the correct
     pitches.
      */
-    /*virtual*/ fun setCurrentPlaybackSampleRate(/*double sampleRate*/) {}
+    /*virtual*/ fun setCurrentPlaybackSampleRate(/*double sampleRate*/) {
+        /*if (sampleRate != newRate)
+        {
+            const ScopedLock sl (lock);
+            allNotesOff (0, false);
+            sampleRate = newRate;
+
+            for (auto* voice : voices)
+            voice->setCurrentPlaybackSampleRate (newRate);
+        }*/
+    }
+
+    /*private*/ fun processNextBlock(/*AudioBuffer<floatType>&, const MidiBuffer&, int startSample, int numSamples*/) {
+        /*
+        // must set the sample rate before using this!
+        jassert(sampleRate != 0);
+        const int targetChannels = outputAudio.getNumChannels();
+
+        auto midiIterator = midiData . findNextSamplePosition (startSample);
+
+        bool firstEvent = true;
+
+        const ScopedLock sl(lock);
+
+        for (; numSamples > 0; ++midiIterator)
+        {
+            if (midiIterator == midiData.cend()) {
+                if (targetChannels > 0)
+                    renderVoices(outputAudio, startSample, numSamples);
+
+                return;
+            }
+
+            const auto metadata = * midiIterator;
+            const int samplesToNextMidiMessage = metadata.samplePosition - startSample;
+
+            if (samplesToNextMidiMessage >= numSamples) {
+                if (targetChannels > 0)
+                    renderVoices(outputAudio, startSample, numSamples);
+
+                handleMidiEvent(metadata.getMessage());
+                break;
+            }
+
+            if (samplesToNextMidiMessage < ((firstEvent && !subBlockSubdivisionIsStrict) ? 1 : minimumSubBlockSize))
+            {
+                handleMidiEvent(metadata.getMessage());
+                continue;
+            }
+
+            firstEvent = false;
+
+            if (targetChannels > 0)
+                renderVoices(outputAudio, startSample, samplesToNextMidiMessage);
+
+            handleMidiEvent(metadata.getMessage());
+            startSample += samplesToNextMidiMessage;
+            numSamples -= samplesToNextMidiMessage;
+        }
+
+        std::for_each (midiIterator,
+                midiData.cend(),
+                [&] (const MidiMessageMetadata& meta) { handleMidiEvent(meta.getMessage()); });*/
+
+    }
 
     /** Creates the next block of audio output.
 
@@ -248,7 +470,9 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     both to the audio output buffer and the midi input buffer, so any midi events
     with timestamps outside the specified region will be ignored.
      */
-    fun renderNextBlock(/*AudioBuffer<float>& outputAudio,const MidiBuffer& inputMidi,int startSample,int  numSamples*/) {}
+    fun renderNextBlock(/*AudioBuffer<float>& outputAudio,const MidiBuffer& inputMidi,int startSample,int  numSamples*/) {
+        /*processNextBlock (outputAudio, inputMidi, startSample, numSamples);*/
+    }
 
     // fun renderNextBlock (/*AudioBuffer<double>& outputAudio,const MidiBuffer& inputMidi,int startSample,int numSamples*/) {}
 
@@ -277,13 +501,20 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     to be smaller, to make sure that the first MIDI event in a buffer will always be sample-accurate
     (this can sometimes help to avoid quantisation or phasing issues).
      */
-    fun setMinimumRenderingSubdivisionSize(/*int numSamples, bool shouldBeStrict = false*/) {}
+    fun setMinimumRenderingSubdivisionSize(/*int numSamples, bool shouldBeStrict = false*/) {
+        /*jassert (numSamples > 0); // it wouldn't make much sense for this to be less than 1
+        minimumSubBlockSize = numSamples;
+        subBlockSubdivisionIsStrict = shouldBeStrict;*/
+    }
 
     /** Renders the voices for the given range.
     By default this just calls renderNextBlock() on each voice, but you may need
     to override it to handle custom cases.
      */
-    /*virtual*/ fun renderVoices(/*AudioBuffer<float>& outputAudio,int startSample, int numSamples*/) {}
+    /*virtual*/ fun renderVoices(/*AudioBuffer<float>& outputAudio,int startSample, int numSamples*/) {
+        /*for (auto* voice : voices)
+        voice->renderNextBlock (buffer, startSample, numSamples);*/
+    }
 
     // /*virtual*/ fun renderVoices(/*AudioBuffer<double>& outputAudio,int startSample, int numSamples*/) {}
 
@@ -295,30 +526,179 @@ class Synthesizer(private val voices: MutableList<SynthesizerVoice> = mutableLis
     To implement a custom note-stealing algorithm, you can either override this
     method, or (preferably) override findVoiceToSteal().
      */
-    /*virtual*/ fun findFreeVoice(/*SynthesiserSound* soundToPlay,int midiChannel,int midiNoteNumber,bool stealIfNoneAvailable*/) /*: SynthesizerVoice*/ {}
+    /*virtual*/ fun findFreeVoice(/*SynthesiserSound* soundToPlay,int midiChannel,int midiNoteNumber,bool stealIfNoneAvailable*/) /*: SynthesizerVoice*/ {
+        /*const ScopedLock sl (lock);
+
+        for (auto* voice : voices)
+        if ((! voice->isVoiceActive()) && voice->canPlaySound (soundToPlay))
+        return voice;
+
+        if (stealIfNoneAvailable)
+            return findVoiceToSteal (soundToPlay, midiChannel, midiNoteNumber);
+
+        return nullptr;*/
+    }
 
     /** Chooses a voice that is most suitable for being re-used.
     The default method will attempt to find the oldest voice that isn't the
     bottom or top note being played. If that's not suitable for your synth,
     you can override this method and do something more cunning instead.
      */
-    /*virtual*/ fun findVoiceToSteal(/*SynthesiserSound* soundToPlay,int midiChannel,int midiNoteNumber*/)/*: SynthesizerVoice*/ {}
+    /*virtual*/ fun findVoiceToSteal(/*SynthesiserSound* soundToPlay,int midiChannel,int midiNoteNumber*/)/*: SynthesizerVoice*/ {
+        /*// This voice-stealing algorithm applies the following heuristics:
+        // - Re-use the oldest notes first
+        // - Protect the lowest & topmost notes, even if sustained, but not if they've been released.
+
+        // apparently you are trying to render audio without having any voices...
+        jassert (! voices.isEmpty());
+
+        // These are the voices we want to protect (ie: only steal if unavoidable)
+        SynthesiserVoice* low = nullptr; // Lowest sounding note, might be sustained, but NOT in release phase
+        SynthesiserVoice* top = nullptr; // Highest sounding note, might be sustained, but NOT in release phase
+
+        // this is a list of voices we can steal, sorted by how long they've been running
+        Array<SynthesiserVoice*> usableVoices;
+        usableVoices.ensureStorageAllocated (voices.size());
+
+        for (auto* voice : voices)
+        {
+            if (voice->canPlaySound (soundToPlay))
+            {
+                jassert (voice->isVoiceActive()); // We wouldn't be here otherwise
+
+                usableVoices.add (voice);
+
+                // NB: Using a functor rather than a lambda here due to scare-stories about
+                // compilers generating code containing heap allocations..
+                struct Sorter
+                        {
+                            bool operator() (const SynthesiserVoice* a, const SynthesiserVoice* b) const noexcept { return a->wasStartedBefore (*b); }
+                        };
+
+                std::sort (usableVoices.begin(), usableVoices.end(), Sorter());
+
+                if (! voice->isPlayingButReleased()) // Don't protect released notes
+                {
+                    auto note = voice->getCurrentlyPlayingNote();
+
+                    if (low == nullptr || note < low->getCurrentlyPlayingNote())
+                    low = voice;
+
+                    if (top == nullptr || note > top->getCurrentlyPlayingNote())
+                    top = voice;
+                }
+            }
+        }
+
+        // Eliminate pathological cases (ie: only 1 note playing): we always give precedence to the lowest note(s)
+        if (top == low)
+            top = nullptr;
+
+        // The oldest note that's playing with the target pitch is ideal..
+        for (auto* voice : usableVoices)
+        if (voice->getCurrentlyPlayingNote() == midiNoteNumber)
+        return voice;
+
+        // Oldest voice that has been released (no finger on it and not held by sustain pedal)
+        for (auto* voice : usableVoices)
+        if (voice != low && voice != top && voice->isPlayingButReleased())
+        return voice;
+
+        // Oldest voice that doesn't have a finger on it:
+        for (auto* voice : usableVoices)
+        if (voice != low && voice != top && ! voice->isKeyDown())
+        return voice;
+
+        // Oldest voice that isn't protected
+        for (auto* voice : usableVoices)
+        if (voice != low && voice != top)
+            return voice;
+
+        // We've only got "protected" voices now: lowest note takes priority
+        jassert (low != nullptr);
+
+        // Duophonic synth: give priority to the bass note:
+        if (top != nullptr)
+            return top;
+
+        return low;*/
+    }
 
     /** Starts a specified voice playing a particular sound.
     You'll probably never need to call this, it's used internally by noteOn(), but
     may be needed by subclasses for custom behaviours.
      */
-    fun startVoice(/*SynthesiserVoice* voice,SynthesiserSound* sound,int midiChannel,int midiNoteNumber,float velocity*/) {}
+    fun startVoice(/*SynthesiserVoice* voice,SynthesiserSound* sound,int midiChannel,int midiNoteNumber,float velocity*/) {
+        /*if (voice != nullptr && sound != nullptr) {
+            if (voice->currentlyPlayingSound != nullptr)
+            voice->stopNote (0.0f, false);
+
+            voice->currentlyPlayingNote = midiNoteNumber;
+            voice->currentPlayingMidiChannel = midiChannel;
+            voice->noteOnTime = ++lastNoteOnCounter;
+            voice->currentlyPlayingSound = sound;
+            voice->setKeyDown (true);
+            voice->setSostenutoPedalDown (false);
+            voice->setSustainPedalDown (sustainPedalsDown[midiChannel]);
+
+            voice->startNote (midiNoteNumber, velocity, sound,
+            lastPitchWheelValues[midiChannel - 1]);
+        }*/
+    }
 
     /** Stops a given voice.
     You should never need to call this, it's used internally by noteOff, but is protected
     in case it's useful for some custom subclasses. It basically just calls through to
     SynthesiserVoice::stopNote(), and has some assertions to sanity-check a few things.
      */
-    fun stopVoice(/*SynthesiserVoice*, float velocity, bool allowTailOff*/) {}
+    fun stopVoice(/*SynthesiserVoice*, float velocity, bool allowTailOff*/) {
+        /*jassert(voice != nullptr);
+
+        voice->stopNote (velocity, allowTailOff);
+
+        // the subclass MUST call clearCurrentNote() if it's not tailing off! RTFM for stopNote()!
+        jassert(allowTailOff || (voice->getCurrentlyPlayingNote() < 0 && voice->getCurrentlyPlayingSound() == nullptr));*/
+    }
 
     /** Can be overridden to do custom handling of incoming midi events. */
-    /*virtual*/ fun handleMidiEvent(/*const MidiMessage&*/) {}
+    /*virtual*/ fun handleMidiEvent(/*const MidiMessage&*/) {
+        /*const int channel = m.getChannel();
+
+        if (m.isNoteOn())
+        {
+            noteOn (channel, m.getNoteNumber(), m.getFloatVelocity());
+        }
+        else if (m.isNoteOff())
+        {
+            noteOff (channel, m.getNoteNumber(), m.getFloatVelocity(), true);
+        }
+        else if (m.isAllNotesOff() || m.isAllSoundOff())
+        {
+            allNotesOff (channel, true);
+        }
+        else if (m.isPitchWheel())
+        {
+            const int wheelPos = m.getPitchWheelValue();
+            lastPitchWheelValues [channel - 1] = wheelPos;
+            handlePitchWheel (channel, wheelPos);
+        }
+        else if (m.isAftertouch())
+        {
+            handleAftertouch (channel, m.getNoteNumber(), m.getAfterTouchValue());
+        }
+        else if (m.isChannelPressure())
+        {
+            handleChannelPressure (channel, m.getChannelPressureValue());
+        }
+        else if (m.isController())
+        {
+            handleController (channel, m.getControllerNumber(), m.getControllerValue());
+        }
+        else if (m.isProgramChange())
+        {
+            handleProgramChange (channel, m.getProgramChangeNumber());
+        }*/
+    }
 
 }
 
