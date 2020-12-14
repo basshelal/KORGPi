@@ -748,7 +748,7 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
      * Called to start a new note.
      * This will be called during the rendering callback, so must be fast and thread-safe.
      */
-    fun startNote(/*int midiNoteNumber, float velocity, SynthesiserSound* sound, int currentPitchWheelPosition*/) {}
+    /*virtual*/ fun startNote(/*int midiNoteNumber, float velocity, SynthesiserSound* sound, int currentPitchWheelPosition*/) {}
 
 
     /**
@@ -763,38 +763,38 @@ class SynthesizerVoice(val sound: SynthesizerSound = SynthesizerSound.EMPTY) {
      * finishes playing (during the rendering callback), it must make sure that it calls
      * clearCurrentNote().
      */
-    fun stopNote(/*float velocity, bool allowTailOff*/) {}
+    /*virtual*/ fun stopNote(/*float velocity, bool allowTailOff*/) {}
 
     /**
      * Returns true if this voice is currently busy playing a sound.
      * By default this just checks the getCurrentlyPlayingNote() value, but can
      * be overridden for more advanced checking.
      */
-    fun isVoiceActive(): Boolean = false
+    /*virtual*/ fun isVoiceActive(): Boolean = false
     /*{ return getCurrentlyPlayingNote() >= 0; }*/
 
     /**
      * Called to let the voice know that the pitch wheel has been moved.
      * This will be called during the rendering callback, so must be fast and thread-safe.
      */
-    fun pitchWheelMoved(/*int newPitchWheelValue*/) {}
+    /*virtual*/ fun pitchWheelMoved(/*int newPitchWheelValue*/) {}
 
     /** Called to let the voice know that a midi controller has been moved.
     This will be called during the rendering callback, so must be fast and thread-safe.
      */
-    fun controllerMoved(/*int controllerNumber, int newControllerValue*/) {}
+    /*virtual*/ fun controllerMoved(/*int controllerNumber, int newControllerValue*/) {}
 
     /**
      * Called to let the voice know that the aftertouch has changed.
      * This will be called during the rendering callback, so must be fast and thread-safe.
      */
-    fun aftertouchChanged(/*int newAftertouchValue*/) {}
+    /*virtual*/ fun aftertouchChanged(/*int newAftertouchValue*/) {}
 
     /**
      * Called to let the voice know that the channel pressure has changed.
      * This will be called during the rendering callback, so must be fast and thread-safe.
      */
-    fun channelPressureChanged(/*int newChannelPressureValue*/) {}
+    /*virtual*/ fun channelPressureChanged(/*int newChannelPressureValue*/) {}
 
     //==============================================================================
     /** Renders the next block of data for this voice.
