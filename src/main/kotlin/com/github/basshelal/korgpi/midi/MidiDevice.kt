@@ -1,13 +1,13 @@
 package com.github.basshelal.korgpi.midi
 
-typealias JavaMidiDevice = javax.sound.midi.MidiDevice
+typealias JMidiDevice = javax.sound.midi.MidiDevice
 
 // Wrapper for JavaMidiDevice
-open class MidiDevice(val javaMidiDevice: JavaMidiDevice) {
+open class MidiDevice(val jMidiDevice: JMidiDevice) {
 
     companion object {
-        fun fromJavaMidiDevice(javaMidiDevice: JavaMidiDevice): MidiDevice {
-            return MidiDevice(javaMidiDevice)
+        fun fromJavaMidiDevice(jMidiDevice: JMidiDevice): MidiDevice {
+            return MidiDevice(jMidiDevice)
         }
     }
 }
