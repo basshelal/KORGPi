@@ -1,44 +1,42 @@
 # Notes
 
-We should fork and explore exactly how JSyn does things, it seems that JSyn uses PortAudio as the Audio Engine
-and Java Sound as the MIDI Input and latency is quite fine from what I recall last year but I need to test
-this properly again, especially on a Pi, if I can even get audio playback :/ In any case Jsyn is an excellent
-starting point for something that works, is fairly complete and decently documented
+The most complete and professional way of doing things (and the most technically rewarding I think) is by
+using JACK (JACK Audio Connection Kit) as the mixer instead of developing one ourselves.
 
-https://github.com/philburk/jsyn
+JACK can handle both audio and MIDI and allows for JACK compliant applications to communicate data to each
+other using JACK, for example our sampler/synthesizer can be plugged into a DAW as if it is a real instrument
+plugged into the soundcard's input and the DAW can use the data we send to it, be it MIDI or Audio or both.
 
-There are 3 main components to worry about and 2 of them being fairly advanced and require external dependencies
+JACK is more of a Linux thing but is actually supported on UNIX and Windows though I had never heard of it until
+I got into Linux audio stuff, Windows uses ASIO which is Windows only and proprietary closed source crap.
 
-## Midi Input
+Anyway, JACK is the right way to go and luckily there seems to be an excellent library for JACK Java bindings called
+[JNAJack](https://github.com/jaudiolibs/jnajack) written by Neil C Smith which looks excellent and should provide us
+with everything we need to communicate with JACK.
 
-Though Java Sound already handles this fairly well, we should also try using RtMidi as a fast, native, cross platform solution
-if possible, also, try and compare speeds between Java Sound MIDI and RtMidi, I suspect the difference will not be major but it's 
-worth playing around with for fun and learning how JNI works.
+Through JACK we can handle the main 2 interfaces with *relative* ease, Audio and MIDI:
 
-https://github.com/thestk/rtmidi
+## MIDI
 
-If we do manage to get something working with decent performance we can release it as a JVM port/binding of RtMidi even if Java Sound
-has better performance, the options are nice to have
+MIDI has one problem, a MIDI device such as a USB Keyboard like the 
+[KORG Microkey 25](https://www.korg.com/uk/products/computergear/microkey/page_1.php) is registered as an 
+*"ALSA MIDI device"* to JACK in Linux, this prevents it from being usable through the main JACK API means, 
+(at least those visible to me in JNAJack) which only allow MIDI and Audio.
 
-## Audio Engine
+It seems though that using `a2jmidid` may fix this issue by routing ALSA MIDI devices to become JACK MIDI devices,
+see more details here https://askubuntu.com/questions/964909/how-to-connect-usb-midi-keyboard-to-qsynth-using-qjackctl
 
-Java Sound seems worse in this regard, especially in comparison to the alternatives. Here we can use another native cross platform
-solution for audio playback that is compatible with Linux (ALSA and JACK). I found 2 that look promising, Phil Burk's PortAudio which
-is used in JSyn (called JPortAudio), and OpenAL, although OpenAL is way overkill for what we want and is better suited for 3D stuff.
-But essentially any native cross platform audio playback solution will suffice, I suspect PortAudio to be more than sufficient.
+What this means to us though is that we develop and application that receives MIDI events (and sends them if we want
+to in the future) through completely through JACK. Users will unfortunately have to deal with *some* pains with initial 
+JACK setup and issues (like we all do), but the result is a very powerful and performant system that is very flexible
+and will mean less code for us to write since we don't need to keep track of a hardware mixer and instead pass that duty
+to JACK, which itself actually *increases* performance and *decreases* latency, it's a classic win-win-win.
 
-http://www.portaudio.com/
+## Audio
 
-Phil Burk has a .jar of JPortAudio with JSyn 
-
-https://github.com/philburk/jsyn/blob/master/libs/jportaudio.jar
-
-The source is here
-
-https://app.assembla.com/spaces/portaudio/git/source/master/bindings/java/jportaudio/src/com/portaudio
-
-But according to [this document](https://app.assembla.com/spaces/portaudio/git/source/master/bindings/java/jportaudio.dox)
-JPortAudio is in alpha and will **NOT** work on Linux, so we may have to do things ourselves with regard to a JVM port of PortAudio
+Similar to MIDI we register our application through JACK as an application that can write audio data to a writable
+stream such as soundcard(s), as well as (maybe) also being able to do something with audio data we receive from JACK,
+though I am on the fence on this, since I see no real use for this anymore now that we rely on JACK.
 
 ## Portable Format (SF2)
 
