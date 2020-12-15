@@ -4,7 +4,8 @@ import com.github.basshelal.korgpi.log.Timer
 import java.lang.Thread.MAX_PRIORITY
 
 // Annotation for functions to indicate real time critical code
-@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.SOURCE)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.EXPRESSION)
 annotation class RealTimeCritical
 
 // Wrapper for Java Threads

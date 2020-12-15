@@ -25,6 +25,7 @@ MIDI has one problem, a MIDI device such as a USB Keyboard like the
 
 It seems though that using `a2jmidid` may fix this issue by routing ALSA MIDI devices to become JACK MIDI devices,
 see more details here https://askubuntu.com/questions/964909/how-to-connect-usb-midi-keyboard-to-qsynth-using-qjackctl
+and here https://manual.ardour.org/setting-up-your-system/setting-up-midi/midi-on-linux/
 
 What this means to us though is that we develop and application that receives MIDI events (and sends them if we want
 to in the future) through completely through JACK. Users will unfortunately have to deal with *some* pains with initial 
