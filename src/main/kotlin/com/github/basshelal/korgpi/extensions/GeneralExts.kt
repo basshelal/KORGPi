@@ -4,6 +4,8 @@
 
 package com.github.basshelal.korgpi.extensions
 
+import java.util.EnumSet
+
 inline val Number.I: Int
     get() = this.toInt()
 
@@ -36,3 +38,5 @@ inline fun <reified T : Throwable> ignoreException(printStackTrace: Boolean = fa
         else if (printStackTrace) e.printStackTrace()
     }
 }
+
+inline fun <reified E : Enum<E>> EnumSet(): EnumSet<E> = EnumSet.noneOf(E::class.java)
