@@ -35,9 +35,9 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun getMidiInPort(name: String): JackPort {
-            return _inPorts.find { it.shortName === name } ?: try {
+            return this._inPorts.find { it.shortName === name } ?: try {
                 val port = jackClient.registerPort(name, JackPortType.MIDI, JackPortFlags.JackPortIsInput)
-                _inPorts.add(port)
+                this._inPorts.add(port)
                 return port
             } catch (je: JackException) {
                 logE("JackException while trying to get MIDI in port with name: $name")
@@ -48,9 +48,9 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeMidiInPort(name: String) {
-            val found: JackPort? = _inPorts.find { it.shortName === name }
+            val found: JackPort? = this._inPorts.find { it.shortName === name }
             if (found !== null) {
-                _inPorts.remove(found)
+                this._inPorts.remove(found)
                 try {
                     jackClient.unregisterPort(found)
                 } catch (je: JackException) {
@@ -70,9 +70,9 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun getAudioAudioPort(name: String): JackPort {
-            return _outPorts.find { it.shortName === name } ?: try {
+            return this._outPorts.find { it.shortName === name } ?: try {
                 val port = jackClient.registerPort(name, JackPortType.AUDIO, JackPortFlags.JackPortIsOutput)
-                _outPorts.add(port)
+                this._outPorts.add(port)
                 return port
             } catch (je: JackException) {
                 logE("JackException while trying to get Audio out port with name: $name")
@@ -83,9 +83,9 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeAudioOutPort(name: String) {
-            val found: JackPort? = _outPorts.find { it.shortName === name }
+            val found: JackPort? = this._outPorts.find { it.shortName === name }
             if (found !== null) {
-                _outPorts.remove(found)
+                this._outPorts.remove(found)
                 try {
                     jackClient.unregisterPort(found)
                 } catch (je: JackException) {
