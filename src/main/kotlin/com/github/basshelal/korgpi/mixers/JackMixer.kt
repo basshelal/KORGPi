@@ -16,6 +16,7 @@ object JackMixer {
 
     lateinit var jackInstance: Jack
     lateinit var jackClient: JackClient
+    var sampleRate: Int = 0
 
     fun initialize() {
         if (!this::jackInstance.isInitialized) {
@@ -23,6 +24,7 @@ object JackMixer {
         }
         if (!this::jackClient.isInitialized) {
             jackClient = jackInstance.openClient("KorgPi")
+            sampleRate = jackClient.sampleRate
         }
     }
 

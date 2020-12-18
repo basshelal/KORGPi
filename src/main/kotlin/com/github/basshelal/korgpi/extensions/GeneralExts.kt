@@ -5,6 +5,7 @@
 package com.github.basshelal.korgpi.extensions
 
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 import java.util.EnumSet
 
 inline val Number.I: Int
@@ -50,4 +51,14 @@ inline fun <reified E : Enum<E>> EnumSet(e: E): EnumSet<E> = EnumSet.of(e)
 
 inline operator fun ByteBuffer.set(index: Int, value: Byte) {
     this.put(index, value)
+}
+
+inline operator fun FloatBuffer.set(index: Int, value: Float) {
+    this.put(index, value)
+}
+
+inline fun FloatBuffer.forEachIndexed(func: (value: Float, index: Int) -> Unit) {
+    for (i: Int in (0 until capacity())) {
+        func(this[i], i)
+    }
 }

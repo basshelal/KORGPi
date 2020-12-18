@@ -112,6 +112,7 @@ fun main() {
             logD("data2: ${it.data2}")
             logD("-----------------")
         }
+        val synth = Synth(midiInPort, audioOutPort)
         JackMixer.start { client, nframes ->
             try {
                 midiInPort.process()
@@ -123,6 +124,8 @@ fun main() {
             }
         }
         JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", "KorgPi:MIDI In Port")
+        JackMixer.jackInstance.connect(JackMixer.jackClient, "KorgPi:Audio Out Port", "system:playback_1")
+        JackMixer.jackInstance.connect(JackMixer.jackClient, "KorgPi:Audio Out Port", "system:playback_2")
         addOnSystemShutdownCallback { JackMixer.jackClient.deactivate() }
         Thread.sleep(Long.MAX_VALUE)
     } catch (e: Exception) {

@@ -9,9 +9,9 @@ import org.jaudiolibs.jnajack.JackPort
 
 class MidiInPort(var jackPort: JackPort) {
 
-    val event: JackMidi.Event = JackMidi.Event()
-    var buffer: ByteArray = ByteArray(0)
-    val midiMessage: MidiMessage = MidiMessage()
+    private val event: JackMidi.Event = JackMidi.Event()
+    private var buffer: ByteArray = ByteArray(0)
+    private val midiMessage: MidiMessage = MidiMessage()
     val callbacks: MutableList<(MidiMessage) -> Unit> = mutableListOf()
 
     @RealTimeCritical
