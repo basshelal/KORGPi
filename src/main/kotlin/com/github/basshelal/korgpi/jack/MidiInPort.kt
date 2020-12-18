@@ -1,11 +1,8 @@
 package com.github.basshelal.korgpi.jack
 
 import com.github.basshelal.korgpi.audio.RealTimeCritical
-import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
-import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.log.logE
 import com.github.basshelal.korgpi.midi.MidiMessage
-import com.github.basshelal.korgpi.mixers.JackMixer
 import org.jaudiolibs.jnajack.JackException
 import org.jaudiolibs.jnajack.JackMidi
 import org.jaudiolibs.jnajack.JackPort
@@ -37,39 +34,5 @@ class MidiInPort(var jackPort: JackPort) {
         } catch (ex: JackException) {
             logE("ERROR : $ex")
         }
-    }
-}
-
-fun main() {
-    try {
-        JackMixer.initialize()
-        val port: JackPort = JackMixer.Midi.getMidiInPort("MIDI In Port")
-        val midiInPort = MidiInPort(port)
-        midiInPort.callbacks.add {
-            when (it.command) {
-                MidiMessage.NOTE_ON -> logE("NOTE ON")
-                MidiMessage.NOTE_OFF -> logE("NOTE OFF")
-                MidiMessage.PITCH_BEND -> logE("PITCH BEND")
-                MidiMessage.CONTROL_CHANGE -> logE("CONTROL CHANGE")
-            }
-            logD("cmmnd: ${it.command}")
-            logD("data1: ${it.data1}")
-            logD("data2: ${it.data2}")
-            logD("-----------------")
-        }
-        JackMixer.start { client, nframes ->
-            try {
-                midiInPort.process()
-                true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
-            }
-        }
-        JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", "KorgPi:MIDI In Port")
-        addOnSystemShutdownCallback { JackMixer.jackClient.deactivate() }
-        Thread.sleep(Long.MAX_VALUE)
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 }

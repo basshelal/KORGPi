@@ -4,6 +4,7 @@
 
 package com.github.basshelal.korgpi.extensions
 
+import java.nio.ByteBuffer
 import java.util.EnumSet
 
 inline val Number.I: Int
@@ -46,3 +47,7 @@ inline fun addOnSystemShutdownCallback(crossinline func: () -> Unit) {
 inline fun <reified E : Enum<E>> EnumSet(): EnumSet<E> = EnumSet.noneOf(E::class.java)
 
 inline fun <reified E : Enum<E>> EnumSet(e: E): EnumSet<E> = EnumSet.of(e)
+
+inline operator fun ByteBuffer.set(index: Int, value: Byte) {
+    this.put(index, value)
+}

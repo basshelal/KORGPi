@@ -9,11 +9,12 @@ import com.github.basshelal.korgpi.audio.WritableLine
 import com.github.basshelal.korgpi.extensions.B
 import com.github.basshelal.korgpi.extensions.D
 import com.github.basshelal.korgpi.extensions.I
-import com.github.basshelal.korgpi.extensions.details
+import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.log.logD
-import com.github.basshelal.korgpi.mixers.AudioMixer
-import com.github.basshelal.korgpi.mixers.MidiMixer
+import com.github.basshelal.korgpi.log.logE
+import com.github.basshelal.korgpi.midi.MidiMessage
+import com.github.basshelal.korgpi.mixers.JackMixer
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene
@@ -93,30 +94,38 @@ fun playNote(noteNumber: Int): ByteArray {
 }
 
 fun main() {
-    logD("All Audio Devices")
-    logD("-------------------------------------------------------")
-    AudioMixer.allAudioDevices().forEach {
-        logD("${it.details}\n")
-        logD("\tWritable Lines:")
-        it.jMixer.sourceLineInfo.forEach { logD("\t\t$it") }
-        logD("\tReadable Lines:")
-        it.jMixer.targetLineInfo.forEach { logD("\t\t$it") }
-    }
-    logD("All Usable Audio Devices")
-    logD("-------------------------------------------------------")
-    AudioMixer.allUsableAudioDevices().forEach { logD("${it.details}\n") }
-    logD("All Readable Data Lines")
-    logD("-------------------------------------------------------")
-    AudioMixer.allReadableDataLines().forEach { logD("${it.details}\n") }
-    logD("All Writeable Data Lines")
-    logD("-------------------------------------------------------")
-    AudioMixer.allWriteableDataLines().forEach { logD("${it.details}\n") }
-    logD("Midi In Devices")
-    logD("-------------------------------------------------------")
-    MidiMixer.midiInDevices().forEach { logD("${it.details}\n") }
-    logD("Midi Out Devices")
-    logD("-------------------------------------------------------")
-    MidiMixer.midiOutDevices().forEach { logD("${it.details}\n") }
-    logD("Launching Application")
+    // logD("Launching Application")
     // Application.launch(App::class.java)
+    try {
+        JackMixer.initialize()
+        val midiInPort = JackMixer.Midi.getMidiInPort("MIDI In Port")
+        val audioOutPort = JackMixer.Audio.getAudioAudioPort("Audio Out Port")
+        midiInPort.callbacks.add {
+            when (it.command) {
+                MidiMessage.NOTE_ON -> logE("NOTE ON")
+                MidiMessage.NOTE_OFF -> logE("NOTE OFF")
+                MidiMessage.PITCH_BEND -> logE("PITCH BEND")
+                MidiMessage.CONTROL_CHANGE -> logE("CONTROL CHANGE")
+            }
+            logD("cmmnd: ${it.command}")
+            logD("data1: ${it.data1}")
+            logD("data2: ${it.data2}")
+            logD("-----------------")
+        }
+        JackMixer.start { client, nframes ->
+            try {
+                midiInPort.process()
+                audioOutPort.process()
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+        JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", "KorgPi:MIDI In Port")
+        addOnSystemShutdownCallback { JackMixer.jackClient.deactivate() }
+        Thread.sleep(Long.MAX_VALUE)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }

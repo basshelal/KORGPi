@@ -1,6 +1,8 @@
 package com.github.basshelal.korgpi.mixers
 
+import com.github.basshelal.korgpi.audio.AudioOutPort
 import com.github.basshelal.korgpi.extensions.openClient
+import com.github.basshelal.korgpi.jack.MidiInPort
 import com.github.basshelal.korgpi.log.logE
 import org.jaudiolibs.jnajack.Jack
 import org.jaudiolibs.jnajack.JackClient
@@ -31,15 +33,16 @@ object JackMixer {
 
     object Midi {
 
-        private val _inPorts = mutableListOf<JackPort>()
-        val inPorts: List<JackPort> get() = _inPorts.toList()
+        private val _inPorts = mutableListOf<MidiInPort>()
+        val inPorts: List<MidiInPort> get() = _inPorts.toList()
 
         @Throws(JackException::class)
-        fun getMidiInPort(name: String): JackPort {
-            return this._inPorts.find { it.shortName === name } ?: try {
-                val port = jackClient.registerPort(name, JackPortType.MIDI, JackPortFlags.JackPortIsInput)
-                this._inPorts.add(port)
-                return port
+        fun getMidiInPort(name: String): MidiInPort {
+            return this._inPorts.find { it.jackPort.shortName === name } ?: try {
+                val jackPort: JackPort = jackClient.registerPort(name, JackPortType.MIDI, JackPortFlags.JackPortIsInput)
+                val midiInPort = MidiInPort(jackPort)
+                this._inPorts.add(midiInPort)
+                return midiInPort
             } catch (je: JackException) {
                 logE("JackException while trying to get MIDI in port with name: $name")
                 je.printStackTrace()
@@ -49,11 +52,11 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeMidiInPort(name: String) {
-            val found: JackPort? = this._inPorts.find { it.shortName === name }
+            val found: MidiInPort? = this._inPorts.find { it.jackPort.shortName === name }
             if (found !== null) {
                 this._inPorts.remove(found)
                 try {
-                    jackClient.unregisterPort(found)
+                    jackClient.unregisterPort(found.jackPort)
                 } catch (je: JackException) {
                     logE("JackException while trying to remove MIDI in port with name: $name")
                     je.printStackTrace()
@@ -66,15 +69,16 @@ object JackMixer {
 
     object Audio {
 
-        private val _outPorts = mutableListOf<JackPort>()
-        val outPorts: List<JackPort> = _outPorts.toList()
+        private val _outPorts = mutableListOf<AudioOutPort>()
+        val outPorts: List<AudioOutPort> = _outPorts.toList()
 
         @Throws(JackException::class)
-        fun getAudioAudioPort(name: String): JackPort {
-            return this._outPorts.find { it.shortName === name } ?: try {
-                val port = jackClient.registerPort(name, JackPortType.AUDIO, JackPortFlags.JackPortIsOutput)
-                this._outPorts.add(port)
-                return port
+        fun getAudioAudioPort(name: String): AudioOutPort {
+            return this._outPorts.find { it.jackPort.shortName === name } ?: try {
+                val jackPort: JackPort = jackClient.registerPort(name, JackPortType.AUDIO, JackPortFlags.JackPortIsOutput)
+                val audioOutPort = AudioOutPort(jackPort)
+                this._outPorts.add(audioOutPort)
+                return audioOutPort
             } catch (je: JackException) {
                 logE("JackException while trying to get Audio out port with name: $name")
                 je.printStackTrace()
@@ -84,11 +88,11 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeAudioOutPort(name: String) {
-            val found: JackPort? = this._outPorts.find { it.shortName === name }
+            val found: AudioOutPort? = this._outPorts.find { it.jackPort.shortName === name }
             if (found !== null) {
                 this._outPorts.remove(found)
                 try {
-                    jackClient.unregisterPort(found)
+                    jackClient.unregisterPort(found.jackPort)
                 } catch (je: JackException) {
                     logE("JackException while trying to remove Audio out port with name: $name")
                     je.printStackTrace()
