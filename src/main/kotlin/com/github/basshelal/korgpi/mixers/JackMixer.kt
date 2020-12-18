@@ -8,6 +8,7 @@ import org.jaudiolibs.jnajack.JackException
 import org.jaudiolibs.jnajack.JackPort
 import org.jaudiolibs.jnajack.JackPortFlags
 import org.jaudiolibs.jnajack.JackPortType
+import org.jaudiolibs.jnajack.JackProcessCallback
 
 object JackMixer {
 
@@ -21,6 +22,11 @@ object JackMixer {
         if (!this::jackClient.isInitialized) {
             jackClient = jackInstance.openClient("KorgPi")
         }
+    }
+
+    fun start(processCallback: JackProcessCallback) {
+        jackClient.setProcessCallback(processCallback)
+        jackClient.activate()
     }
 
     object Midi {

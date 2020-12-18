@@ -1,8 +1,10 @@
 package com.github.basshelal.korgpi.jack
 
 import com.github.basshelal.korgpi.audio.RealTimeCritical
+import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
 import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.log.logE
+import com.github.basshelal.korgpi.midi.MidiMessage
 import com.github.basshelal.korgpi.mixers.JackMixer
 import org.jaudiolibs.jnajack.JackException
 import org.jaudiolibs.jnajack.JackMidi
@@ -12,7 +14,8 @@ class MidiInPort(var jackPort: JackPort) {
 
     val event: JackMidi.Event = JackMidi.Event()
     var buffer: ByteArray = ByteArray(0)
-    val callbacks: MutableList<(ByteArray) -> Unit> = mutableListOf()
+    val midiMessage: MidiMessage = MidiMessage()
+    val callbacks: MutableList<(MidiMessage) -> Unit> = mutableListOf()
 
     @RealTimeCritical
     fun process() {
@@ -25,8 +28,10 @@ class MidiInPort(var jackPort: JackPort) {
                     buffer = ByteArray(size)
                 }
                 event.read(buffer)
+                midiMessage.setData(buffer)
+                // TODO: 18/12/2020 Calling callbacks might need to be asynchronous to prevent blocking
                 callbacks.forEach {
-                    it(buffer)
+                    it(midiMessage)
                 }
             }
         } catch (ex: JackException) {
@@ -39,13 +44,20 @@ fun main() {
     try {
         JackMixer.initialize()
         val port: JackPort = JackMixer.Midi.getMidiInPort("MIDI In Port")
-
         val midiInPort = MidiInPort(port)
         midiInPort.callbacks.add {
-            it.forEach { logD(it) }
+            when (it.command) {
+                MidiMessage.NOTE_ON -> logE("NOTE ON")
+                MidiMessage.NOTE_OFF -> logE("NOTE OFF")
+                MidiMessage.PITCH_BEND -> logE("PITCH BEND")
+                MidiMessage.CONTROL_CHANGE -> logE("CONTROL CHANGE")
+            }
+            logD("cmmnd: ${it.command}")
+            logD("data1: ${it.data1}")
+            logD("data2: ${it.data2}")
             logD("-----------------")
         }
-        JackMixer.jackClient.setProcessCallback { client, nframes ->
+        JackMixer.start { client, nframes ->
             try {
                 midiInPort.process()
                 true
@@ -54,8 +66,8 @@ fun main() {
                 false
             }
         }
-        JackMixer.jackClient.activate()
         JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", "KorgPi:MIDI In Port")
+        addOnSystemShutdownCallback { JackMixer.jackClient.deactivate() }
         Thread.sleep(Long.MAX_VALUE)
     } catch (e: Exception) {
         e.printStackTrace()

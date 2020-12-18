@@ -10,6 +10,8 @@ version = "1.0-SNAPSHOT"
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "14"
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalUnsignedTypes"
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 
 application {
