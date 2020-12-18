@@ -1,16 +1,13 @@
 package com.github.basshelal.korgpi.mixers
 
-import com.github.basshelal.korgpi.extensions.EnumSet
+import com.github.basshelal.korgpi.extensions.openClient
 import com.github.basshelal.korgpi.log.logE
 import org.jaudiolibs.jnajack.Jack
 import org.jaudiolibs.jnajack.JackClient
 import org.jaudiolibs.jnajack.JackException
-import org.jaudiolibs.jnajack.JackOptions
 import org.jaudiolibs.jnajack.JackPort
 import org.jaudiolibs.jnajack.JackPortFlags
 import org.jaudiolibs.jnajack.JackPortType
-import org.jaudiolibs.jnajack.JackStatus
-import java.util.EnumSet
 
 object JackMixer {
 
@@ -22,9 +19,7 @@ object JackMixer {
             jackInstance = Jack.getInstance()
         }
         if (!this::jackClient.isInitialized) {
-            val status = EnumSet<JackStatus>()
-            jackClient = jackInstance.openClient("KorgPi", EnumSet.of(JackOptions.JackNoStartServer), status)
-            jackClient.activate()
+            jackClient = jackInstance.openClient("KorgPi")
         }
     }
 

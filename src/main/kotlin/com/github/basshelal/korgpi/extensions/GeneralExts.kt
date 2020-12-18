@@ -40,3 +40,5 @@ inline fun <reified T : Throwable> ignoreException(printStackTrace: Boolean = fa
 }
 
 inline fun <reified E : Enum<E>> EnumSet(): EnumSet<E> = EnumSet.noneOf(E::class.java)
+
+inline fun <reified E : Enum<E>> EnumSet(e: E): EnumSet<E> = EnumSet.of(e)
