@@ -57,8 +57,23 @@ inline operator fun FloatBuffer.set(index: Int, value: Float) {
     this.put(index, value)
 }
 
+inline fun FloatBuffer.forEach(func: (value: Float) -> Unit) {
+    for (i: Int in (0 until capacity())) {
+        func(this[i])
+    }
+}
+
 inline fun FloatBuffer.forEachIndexed(func: (value: Float, index: Int) -> Unit) {
     for (i: Int in (0 until capacity())) {
         func(this[i], i)
     }
 }
+
+inline fun FloatBuffer.fillWith(value: Float): FloatBuffer {
+    this.forEachIndexed { _, index ->
+        this[index] = value
+    }
+    return this
+}
+
+inline fun FloatBuffer.zero(): FloatBuffer = this.fillWith(0F)
