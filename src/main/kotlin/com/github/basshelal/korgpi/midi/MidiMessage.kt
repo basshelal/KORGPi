@@ -2,14 +2,25 @@
 
 package com.github.basshelal.korgpi.midi
 
+import org.jaudiolibs.jnajack.JackMidi
 import javax.sound.midi.MidiMessage
 
 class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
+
+    var midiEventBuffer = ByteArray(0)
 
     inline val length: Int get() = bytes.size
 
     inline fun setData(byteArray: ByteArray) {
         this.bytes = byteArray.toUByteArray()
+    }
+
+    inline fun setData(event: JackMidi.Event) {
+        event.size().also { size: Int ->
+            if (midiEventBuffer.size < size) midiEventBuffer = ByteArray(size)
+        }
+        event.read(midiEventBuffer)
+        this.bytes = midiEventBuffer.toUByteArray()
     }
 
     inline val command: UByte get() = this.bytes[0]
@@ -21,7 +32,7 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
 
         // Status byte defines
         // System common messages
-        
+
         /**
          * Status byte for MIDI Time Code Quarter Frame message (0xF1, or 241).
          *
