@@ -9,15 +9,10 @@ class AudioOutPort(var jackPort: JackPort) {
 
     val callbacks: MutableList<(FloatBuffer) -> Unit> = mutableListOf()
 
-    val queue: ArrayDeque<(FloatBuffer) -> Unit> = ArrayDeque()
-
     inline val floatBuffer: FloatBuffer get() = jackPort.floatBuffer
 
     @RealTimeCritical
     fun process() {
-        while (queue.isNotEmpty()) {
-            queue.removeFirst()(floatBuffer)
-        }
 
         callbacks.forEach { it(floatBuffer) }
 
