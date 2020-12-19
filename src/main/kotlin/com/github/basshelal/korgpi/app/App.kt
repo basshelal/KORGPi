@@ -1,20 +1,11 @@
 package com.github.basshelal.korgpi.app
 
-import com.github.basshelal.korgpi.Key
-import com.github.basshelal.korgpi.audio.Formats
-import com.github.basshelal.korgpi.audio.ReadWriteLineThread
-import com.github.basshelal.korgpi.audio.ReadableLine
-import com.github.basshelal.korgpi.audio.SAMPLE_RATE
-import com.github.basshelal.korgpi.audio.WritableLine
-import com.github.basshelal.korgpi.extensions.B
-import com.github.basshelal.korgpi.extensions.D
-import com.github.basshelal.korgpi.extensions.I
+import com.github.basshelal.korgpi.JackMixer
 import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.log.logE
 import com.github.basshelal.korgpi.midi.MidiMessage
-import com.github.basshelal.korgpi.mixers.JackMixer
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene
@@ -25,29 +16,8 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.stage.Stage
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import tornadofx.add
 import tornadofx.text
-import javax.sound.sampled.AudioSystem
-import kotlin.math.PI
-import kotlin.math.sin
-
-// Entry point is specifying Audio Format because with format we can get Lines, and with Lines we can open we can
-// then access Audio Devices etc etc. So before anything, we need to determine Audio Format!
-
-val BUFFER_SIZE = ((2 * SAMPLE_RATE) / 100F).I
-
-val outputLine = AudioSystem.getSourceDataLine(Formats.default).also {
-    it.open(Formats.default, BUFFER_SIZE)
-    it.start()
-}
-
-val inputLine = AudioSystem.getTargetDataLine(Formats.default).also {
-    it.open(Formats.default, BUFFER_SIZE)
-    it.start()
-}
 
 class App : Application() {
 
@@ -65,31 +35,11 @@ class App : Application() {
 
     override fun init() {
         logD("Initializing...")
-
-        val buffer = ByteArray(BUFFER_SIZE)
-        val readLine = ReadableLine(inputLine)
-        val writeLine = WritableLine(outputLine)
-        val thread = ReadWriteLineThread(readLine, writeLine, buffer)
-        thread.start()
-
-        GlobalScope.launch {
-            delay(5000)
-            thread.kill()
-        }
-
     }
 
     override fun stop() {
         logD("Stopping...")
         System.exit(0)
-    }
-}
-
-fun playNote(noteNumber: Int): ByteArray {
-    val noteFrequency: Double = Key.fromNumber(noteNumber).frequency
-    val interval = SAMPLE_RATE.D / noteFrequency
-    return ByteArray(SAMPLE_RATE.I) {
-        (sin((2.0 * PI * it) / interval) * 127.0).B
     }
 }
 

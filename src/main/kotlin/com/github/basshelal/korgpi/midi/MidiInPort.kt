@@ -1,9 +1,8 @@
-package com.github.basshelal.korgpi.jack
+package com.github.basshelal.korgpi.midi
 
-import com.github.basshelal.korgpi.audio.RealTimeCritical
+import com.github.basshelal.korgpi.RealTimeCritical
 import com.github.basshelal.korgpi.extensions.getEvent
 import com.github.basshelal.korgpi.extensions.midiEventCount
-import com.github.basshelal.korgpi.midi.MidiMessage
 import org.jaudiolibs.jnajack.JackException
 import org.jaudiolibs.jnajack.JackMidi
 import org.jaudiolibs.jnajack.JackPort

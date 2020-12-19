@@ -11,3 +11,8 @@ inline fun <reified T : Destructible> T.runAndDestroy(block: (T) -> Unit) {
     block(this)
     this.beforeDestroy()
 }
+
+// Annotation for functions to indicate real time critical code
+@Retention(AnnotationRetention.SOURCE)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.EXPRESSION)
+annotation class RealTimeCritical

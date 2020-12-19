@@ -1,5 +1,6 @@
 package com.github.basshelal.korgpi.audio
 
+import com.github.basshelal.korgpi.RealTimeCritical
 import com.github.basshelal.korgpi.extensions.forEach
 import com.github.basshelal.korgpi.log.logD
 import org.jaudiolibs.jnajack.JackPort

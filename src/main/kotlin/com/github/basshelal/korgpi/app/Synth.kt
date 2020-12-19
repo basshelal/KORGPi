@@ -1,14 +1,14 @@
 package com.github.basshelal.korgpi.app
 
+import com.github.basshelal.korgpi.JackMixer
+import com.github.basshelal.korgpi.RealTimeCritical
 import com.github.basshelal.korgpi.audio.AudioOutPort
-import com.github.basshelal.korgpi.audio.RealTimeCritical
 import com.github.basshelal.korgpi.extensions.D
 import com.github.basshelal.korgpi.extensions.F
 import com.github.basshelal.korgpi.extensions.updateEach
 import com.github.basshelal.korgpi.extensions.zero
-import com.github.basshelal.korgpi.jack.MidiInPort
+import com.github.basshelal.korgpi.midi.MidiInPort
 import com.github.basshelal.korgpi.midi.MidiMessage
-import com.github.basshelal.korgpi.mixers.JackMixer
 import java.nio.FloatBuffer
 import kotlin.math.PI
 import kotlin.math.sin
