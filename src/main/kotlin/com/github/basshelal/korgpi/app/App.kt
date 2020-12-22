@@ -1,12 +1,10 @@
 package com.github.basshelal.korgpi.app
 
 import com.github.basshelal.korgpi.JackMixer
+import com.github.basshelal.korgpi.audio.Synth
 import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.log.logD
-import com.github.basshelal.korgpi.log.logE
-import com.github.basshelal.korgpi.midi.MidiMessage
-import com.github.basshelal.korgpi.midi.MidiReceiver
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene
@@ -51,18 +49,6 @@ fun main() {
         JackMixer.initialize()
         val midiInPort = JackMixer.Midi.getMidiInPort("MIDI In Port")
         val audioOutPort = JackMixer.Audio.getAudioAudioPort("Audio Out Port")
-        midiInPort.receivers.add(MidiReceiver {
-            when (it.command) {
-                MidiMessage.NOTE_ON -> logE("NOTE ON")
-                MidiMessage.NOTE_OFF -> logE("NOTE OFF")
-                MidiMessage.PITCH_BEND -> logE("PITCH BEND")
-                MidiMessage.CONTROL_CHANGE -> logE("CONTROL CHANGE")
-            }
-            logD("cmmnd: ${it.command}")
-            logD("data1: ${it.data1}")
-            logD("data2: ${it.data2}")
-            logD("-----------------")
-        })
         val synth = Synth(midiInPort, audioOutPort)
         JackMixer.start { client, nframes ->
             try {
@@ -74,9 +60,9 @@ fun main() {
                 false
             }
         }
-        JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", "KorgPi:MIDI In Port")
-        JackMixer.jackInstance.connect(JackMixer.jackClient, "KorgPi:Audio Out Port", "system:playback_1")
-        JackMixer.jackInstance.connect(JackMixer.jackClient, "KorgPi:Audio Out Port", "system:playback_2")
+        JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", midiInPort.jackPort.name)
+        JackMixer.jackInstance.connect(JackMixer.jackClient, audioOutPort.jackPort.name, "system:playback_1")
+        JackMixer.jackInstance.connect(JackMixer.jackClient, audioOutPort.jackPort.name, "system:playback_2")
         addOnSystemShutdownCallback { JackMixer.jackClient.deactivate() }
         Thread.sleep(Long.MAX_VALUE)
     } catch (e: Exception) {
