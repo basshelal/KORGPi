@@ -14,9 +14,13 @@ import com.github.basshelal.korgpi.Note.F
 import com.github.basshelal.korgpi.Note.Fs
 import com.github.basshelal.korgpi.Note.G
 import com.github.basshelal.korgpi.Note.Gs
+import com.github.basshelal.korgpi.Note.X
 import com.github.basshelal.korgpi.Octave.EIGHT
 import com.github.basshelal.korgpi.Octave.FIVE
 import com.github.basshelal.korgpi.Octave.FOUR
+import com.github.basshelal.korgpi.Octave.MINUS
+import com.github.basshelal.korgpi.Octave.NINE
+import com.github.basshelal.korgpi.Octave.NONE
 import com.github.basshelal.korgpi.Octave.ONE
 import com.github.basshelal.korgpi.Octave.SEVEN
 import com.github.basshelal.korgpi.Octave.SIX
@@ -29,6 +33,19 @@ import kotlin.math.log2
 import kotlin.math.pow
 
 val MIDI_TO_KEY_MAP = mapOf(
+        // Octave MINUS
+        0 to Key(C, MINUS),
+        1 to Key(Cs, MINUS),
+        2 to Key(D, MINUS),
+        3 to Key(Ds, MINUS),
+        4 to Key(E, MINUS),
+        5 to Key(F, MINUS),
+        6 to Key(Fs, MINUS),
+        7 to Key(G, MINUS),
+        8 to Key(Gs, MINUS),
+        9 to Key(A, MINUS),
+        10 to Key(As, MINUS),
+        11 to Key(B, MINUS),
         // Octave ZERO
         12 to Key(C, ZERO),
         13 to Key(Cs, ZERO),
@@ -145,7 +162,17 @@ val MIDI_TO_KEY_MAP = mapOf(
         116 to Key(Gs, EIGHT),
         117 to Key(A, EIGHT),
         118 to Key(As, EIGHT),
-        119 to Key(B, EIGHT)
+        119 to Key(B, EIGHT),
+        // Octave NINE
+        120 to Key(C, NINE),
+        121 to Key(Cs, NINE),
+        122 to Key(D, NINE),
+        123 to Key(Ds, NINE),
+        124 to Key(E, NINE),
+        125 to Key(F, NINE),
+        126 to Key(Fs, NINE),
+        127 to Key(G, NINE),
+        -1 to Key(X, NONE)
 )
 
 enum class Note {
@@ -165,7 +192,7 @@ enum class Note {
 }
 
 enum class Octave {
-    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NONE
+    MINUS, ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, NONE
 }
 
 data class Key(val note: Note, val octave: Octave) {
@@ -184,13 +211,15 @@ data class Key(val note: Note, val octave: Octave) {
     infix fun addCents(cents: Int) = addCents(this, cents)
 
     companion object {
-        fun fromNumber(number: Int): Key {
+        val NULL = Key(X, NONE)
+
+        fun fromMidiNumber(number: Int): Key {
             return getKey(number)
         }
 
         fun fromFrequency(frequency: Double): Key {
             val number = (12 * log2(frequency / 440.0)) + 69
-            return fromNumber(number.I)
+            return fromMidiNumber(number.I)
         }
 
         fun centsDifference(from: Key, to: Key): Int {
@@ -204,12 +233,16 @@ data class Key(val note: Note, val octave: Octave) {
 }
 
 inline fun getKey(number: Int): Key {
-    require(number in (12..119))
-    return MIDI_TO_KEY_MAP[number]!!
+    return MIDI_TO_KEY_MAP[number] ?: Key.NULL
 }
 
 inline fun getNumber(key: Key): Int {
     val results = MIDI_TO_KEY_MAP.filter { it.value == key }.keys
     require(results.size == 1)
     return results.first()
+}
+
+inline fun midiKeyToFrequency(midiKey: Int): Double {
+    val exp = (midiKey.D - 69.0) / 12.0
+    return 2.0.pow(exp) * 440.0
 }
