@@ -6,6 +6,7 @@ import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.log.logE
 import com.github.basshelal.korgpi.midi.MidiMessage
+import com.github.basshelal.korgpi.midi.MidiReceiver
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene
@@ -50,7 +51,7 @@ fun main() {
         JackMixer.initialize()
         val midiInPort = JackMixer.Midi.getMidiInPort("MIDI In Port")
         val audioOutPort = JackMixer.Audio.getAudioAudioPort("Audio Out Port")
-        midiInPort.callbacks.add {
+        midiInPort.receivers.add(MidiReceiver {
             when (it.command) {
                 MidiMessage.NOTE_ON -> logE("NOTE ON")
                 MidiMessage.NOTE_OFF -> logE("NOTE OFF")
@@ -61,7 +62,7 @@ fun main() {
             logD("data1: ${it.data1}")
             logD("data2: ${it.data2}")
             logD("-----------------")
-        }
+        })
         val synth = Synth(midiInPort, audioOutPort)
         JackMixer.start { client, nframes ->
             try {
