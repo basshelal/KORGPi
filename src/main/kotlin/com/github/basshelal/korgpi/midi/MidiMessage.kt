@@ -29,15 +29,23 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
     inline val data1: UByte get() = this.bytes[1]
     inline val data2: UByte get() = this.bytes[2]
 
-    val pitchBendValue: Float
+    val pitchBendValueRaw: Int
         get() {
-            if (this.command != PITCH_BEND) return 0F
+            if (this.command != PITCH_BEND) return PITCH_BEND_CENTER
             else {
                 // logD((message.data2.toInt() shl 7) or message.data1.toInt())
                 // between -1F (left most) and 1F (right most)
                 val midiValue = (data2.I shl 7) or data1.I
                 assert(midiValue in (PITCH_BEND_MIN..PITCH_BEND_MAX))
-                return convertScale(midiValue)
+                return midiValue
+            }
+        }
+
+    val pitchBendValue: Float
+        get() {
+            if (this.command != PITCH_BEND) return 0F
+            else {
+                return convertScale(pitchBendValueRaw)
             }
         }
 

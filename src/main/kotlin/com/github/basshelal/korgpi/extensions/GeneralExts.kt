@@ -29,6 +29,14 @@ inline val now: Long get() = System.currentTimeMillis()
 
 inline val nowNanos: Long get() = System.nanoTime()
 
+inline fun convertScale(oldScaleMin: Int, oldScaleMax: Int,
+                        newScaleMin: Int, newScaleMax: Int,
+                        oldValueToConvert: Int): Int {
+    val oldScaleRange: Int = oldScaleMax - oldScaleMin
+    val newScaleRange: Int = newScaleMax - newScaleMin
+    return ((oldValueToConvert - oldScaleMin) * newScaleRange / oldScaleRange) + newScaleMin
+}
+
 inline val Any?.simpleClassName: String get() = this?.javaClass?.simpleName ?: "null"
 
 inline fun ignoreExceptions(printStackTrace: Boolean = false, func: () -> Unit) =
