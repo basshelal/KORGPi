@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.21"
     id("org.openjfx.javafxplugin") version "0.0.8"
 }
 group = "com.github.basshelal"

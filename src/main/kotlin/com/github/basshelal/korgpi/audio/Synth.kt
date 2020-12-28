@@ -25,7 +25,7 @@ class Synth(midiInPort: MidiInPort, audioOutPort: AudioOutPort)
         val bufferSize = JackMixer.jackClient.bufferSize
         midiInPort.receivers.add(this)
         audioOutPort.audioProcessors.add(this)
-        voices = List(256) {
+        voices = List(MidiMessage.MAX_NOTES) {
             SynthVoice(sampleRate, bufferSize)
         }
     }
@@ -41,6 +41,9 @@ class Synth(midiInPort: MidiInPort, audioOutPort: AudioOutPort)
             MidiMessage.NOTE_OFF -> {
                 val voice = voices.find { it.isActive && it.key == key }
                 voice?.deactivate()
+            }
+            MidiMessage.PITCH_BEND -> {
+                logD(message.pitchBendValue)
             }
         }
     }

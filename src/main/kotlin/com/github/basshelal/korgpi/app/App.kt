@@ -60,7 +60,7 @@ fun main() {
                 false
             }
         }
-        JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [20] (capture): microKEY-25 MIDI 1", midiInPort.jackPort.name)
+        JackMixer.jackInstance.connect(JackMixer.jackClient, "a2j:microKEY-25 [28] (capture): microKEY-25 MIDI 1", midiInPort.jackPort.name)
         JackMixer.jackInstance.connect(JackMixer.jackClient, audioOutPort.jackPort.name, "system:playback_1")
         JackMixer.jackInstance.connect(JackMixer.jackClient, audioOutPort.jackPort.name, "system:playback_2")
         addOnSystemShutdownCallback { JackMixer.jackClient.deactivate() }

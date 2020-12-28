@@ -2,6 +2,8 @@
 
 package com.github.basshelal.korgpi.midi
 
+import com.github.basshelal.korgpi.extensions.F
+import com.github.basshelal.korgpi.extensions.I
 import org.jaudiolibs.jnajack.JackMidi
 import javax.sound.midi.MidiMessage
 
@@ -26,6 +28,34 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
     inline val command: UByte get() = this.bytes[0]
     inline val data1: UByte get() = this.bytes[1]
     inline val data2: UByte get() = this.bytes[2]
+
+    val pitchBendValue: Float
+        get() {
+            if (this.command != PITCH_BEND) return 0F
+            else {
+                // logD((message.data2.toInt() shl 7) or message.data1.toInt())
+                // between -1F (left most) and 1F (right most)
+                val midiValue = (data2.I shl 7) or data1.I
+                assert(midiValue in (PITCH_BEND_MIN..PITCH_BEND_MAX))
+                return convertScale(midiValue)
+            }
+        }
+
+    private fun convertScale(oldValueToConvert: Int): Float {
+        val oldScaleMin: Int = PITCH_BEND_MIN
+        val oldScaleMax: Int = PITCH_BEND_MAX
+        val oldScaleRange: Int = oldScaleMax - oldScaleMin
+
+        val newScaleMin: Float = -1.0F
+        val newScaleMax: Float = 1.0F
+        val newScaleRange: Float = newScaleMax - newScaleMin
+
+        return ((oldValueToConvert - oldScaleMin).F * newScaleRange.F / oldScaleRange.F) + newScaleMin.F
+    }
+
+    override fun toString(): String {
+        return this.bytes.joinToString()
+    }
 
     companion object {
         // System common messages
@@ -154,6 +184,14 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
          */
         const val PITCH_BEND: UByte = 224U
 
+
+        // Some Constants
+
+        const val PITCH_BEND_CENTER: Int = 0x2000 // 8192
+        const val PITCH_BEND_MAX: Int = 0x3FFF // 16383
+        const val PITCH_BEND_MIN: Int = 0x0000 // 0
+
+        const val MAX_NOTES: Int = 128
     }
 
 }

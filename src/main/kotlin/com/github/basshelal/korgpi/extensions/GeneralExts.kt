@@ -4,7 +4,6 @@
 
 package com.github.basshelal.korgpi.extensions
 
-import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.EnumSet
 
@@ -22,6 +21,9 @@ inline val Number.L: Long
 
 inline val Number.B: Byte
     get() = this.toByte()
+
+inline val UByte.I: Int
+    get() = this.toInt()
 
 inline val now: Long get() = System.currentTimeMillis()
 
@@ -48,10 +50,6 @@ inline fun addOnSystemShutdownCallback(crossinline func: () -> Unit) {
 inline fun <reified E : Enum<E>> EnumSet(): EnumSet<E> = EnumSet.noneOf(E::class.java)
 
 inline fun <reified E : Enum<E>> EnumSet(e: E): EnumSet<E> = EnumSet.of(e)
-
-inline operator fun ByteBuffer.set(index: Int, value: Byte) {
-    this.put(index, value)
-}
 
 inline operator fun FloatBuffer.set(index: Int, value: Float) {
     this.put(index, value)
