@@ -66,7 +66,6 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
     }
 
     companion object {
-        // System common messages
 
         // Status byte defines
         // System common messages

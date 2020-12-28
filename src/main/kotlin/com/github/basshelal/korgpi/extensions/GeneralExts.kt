@@ -82,9 +82,7 @@ inline fun FloatBuffer.updateEach(func: (value: Float, index: Int) -> Float) {
 }
 
 inline fun FloatBuffer.fillWith(value: Float): FloatBuffer {
-    this.forEachIndexed { _, index ->
-        this[index] = value
-    }
+    this.forEachIndexed { _, index -> this[index] = value }
     return this
 }
 
