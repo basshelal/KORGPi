@@ -2,7 +2,7 @@ package com.github.basshelal.korgpi.audio
 
 import com.github.basshelal.korgpi.JackMixer
 import com.github.basshelal.korgpi.Key
-import com.github.basshelal.korgpi.Note
+import com.github.basshelal.korgpi.Notes
 import com.github.basshelal.korgpi.RealTimeCritical
 import com.github.basshelal.korgpi.TWOPI
 import com.github.basshelal.korgpi.extensions.D
@@ -44,7 +44,7 @@ class Synth(midiInPort: MidiInPort, audioOutPort: AudioOutPort)
                 val voice = voices.find { !it.isActive }
                 centsModifier = convertScale(MidiMessage.PITCH_BEND_MIN, MidiMessage.PITCH_BEND_MAX,
                         -100, 100, message.pitchBendValueRaw)
-                if (key.note == Note.E || key.note == Note.B) { // Maqam Huseyni/Ussak on D
+                if (key.note == Notes.E || key.note == Notes.B) { // Maqam Huseyni/Ussak on D
                     voice?.centsModifier = -50
                 }
                 voice?.activate(key)
@@ -125,7 +125,7 @@ class SynthVoice(private var sampleRate: Double, bufferSize: Int) {
     }
 
     fun updateAngleDelta() {
-        val cyclesPerSample: Double = (key addCents centsModifier) / sampleRate
+        val cyclesPerSample: Double = (key addedCents centsModifier) / sampleRate
         angleDelta = cyclesPerSample * TWOPI
     }
 

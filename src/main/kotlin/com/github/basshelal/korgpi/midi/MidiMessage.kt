@@ -108,8 +108,6 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
 
         // System real-time messages
 
-        // System real-time messages
-
         /**
          * Status byte for Timing Clock message (0xF8, or 248).
          *
@@ -154,8 +152,6 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
 
         // Channel voice message upper nibble defines
 
-        // Channel voice message upper nibble defines
-
         /**
          * Command value for Note Off message (0x80, or 128).
          */
@@ -191,7 +187,6 @@ class MidiMessage(var bytes: UByteArray = UByteArray(3)) {
          * Command value for Pitch Bend message (0xE0, or 224).
          */
         const val PITCH_BEND: UByte = 224U
-
 
         // Some Constants
 
