@@ -1,5 +1,6 @@
 package com.github.basshelal.korgpi.sf2
 
+import com.github.basshelal.korgpi.UINT_MAX
 import com.github.basshelal.korgpi.extensions.B
 import com.github.basshelal.korgpi.extensions.I
 import com.github.basshelal.korgpi.extensions.L
@@ -15,7 +16,7 @@ class RIFFReader(val stream: InputStream) : InputStream() {
     private var fourcc: String = ""
     private var riff_type: String? = null
     private var ckSize: Long = 0
-    private var avail: Long = 0xffffffffL // MAX_UNSIGNED_INT
+    private var avail: Long = UINT_MAX
     private var lastIterator: RIFFReader? = null
 
     init {
@@ -63,7 +64,7 @@ class RIFFReader(val stream: InputStream) : InputStream() {
 
     val hasNextChunk: Boolean
         get() {
-            lastIterator?.finish()
+            if (lastIterator != null) lastIterator?.finish()
             return avail != 0L
         }
 
@@ -107,10 +108,8 @@ class RIFFReader(val stream: InputStream) : InputStream() {
             throw IOException("Length too big", oom)
         }
         readFully(buff)
-        for (i in buff.indices) {
-            if (buff[i].I == 0) {
-                return String(buff, 0, i, Charsets.US_ASCII)
-            }
+        buff.forEachIndexed { index: Int, it: Byte ->
+            if (it == 0.B) return String(buff, 0, index, Charsets.US_ASCII)
         }
         return String(buff, Charsets.US_ASCII)
     }
@@ -244,3 +243,5 @@ class RIFFReader(val stream: InputStream) : InputStream() {
         stream.close()
     }
 }
+
+class RIFFInvalidFormatException(s: String) : IOException(s)

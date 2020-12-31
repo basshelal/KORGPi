@@ -20,3 +20,5 @@ inline fun <reified T : Destructible> T.runAndDestroy(block: (T) -> Unit) {
 annotation class RealTimeCritical
 
 const val TWOPI: Double = 2.0 * PI
+const val UINT_MAX: Long = 4294967295L
+const val USHORT_MAX: Int = 65535
