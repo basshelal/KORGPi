@@ -22,6 +22,9 @@ inline val Number.L: Long
 inline val Number.B: Byte
     get() = this.toByte()
 
+inline val Number.S: Short
+    get() = this.toShort()
+
 inline val UByte.I: Int
     get() = this.toInt()
 
