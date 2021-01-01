@@ -1,16 +1,16 @@
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+
 package com.github.basshelal.korgpi.sf2
 
 import com.github.basshelal.korgpi.extensions.L
 import com.sun.media.sound.ModelByteBuffer
-import com.sun.media.sound.SF2Instrument
-import com.sun.media.sound.SF2Layer
-import com.sun.media.sound.SF2Sample
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.io.InputStream
 import java.net.URL
-import java.util.ArrayList
+
+// TODO: 31/12/2020 Reimplement this, probably into a java.nio.ByteBuffer
+typealias MByteBuffer = ModelByteBuffer
 
 class SF2Soundbank(inputStream: InputStream) {
 
@@ -50,45 +50,36 @@ class SF2Soundbank(inputStream: InputStream) {
     var tools: String? = null
 
     // The Sample Data loaded from the SoundFont
-    // TODO: 31/12/2020 Reimplement types
-    private var sampleData: ModelByteBuffer? = null
-    private var sampleData24: ModelByteBuffer? = null
-    private val sampleFile: File? = null
-    private val largeFormat = false
-    private val instruments: List<SF2Instrument> = ArrayList()
-    private val layers: List<SF2Layer> = ArrayList()
-    private val samples: List<SF2Sample> = ArrayList()
+    var sampleData: MByteBuffer? = null
+    var sampleData24: MByteBuffer? = null
+    var sampleFile: File? = null
+    var largeFormat = false
+    val instruments: MutableList<SF2Instrument> = mutableListOf()
+    val layers: MutableList<SF2Layer> = mutableListOf()
+    val samples: MutableList<SF2Sample> = mutableListOf()
 
-    constructor(file: File) : this(kotlin.run {
-        val inputStream: InputStream = FileInputStream(file)
-        return@run inputStream
-    })
+    constructor(file: File) : this(FileInputStream(file)) {
+        this.largeFormat = true
+        this.sampleFile = file
+    }
 
-    constructor(url: URL) : this(kotlin.run {
-        val inputStream: InputStream = url.openStream()
-        return@run inputStream
-    })
+    constructor(url: URL) : this(url.openStream())
+
+    constructor(filePath: String) : this(FileInputStream(filePath))
 
     init {
         try {
-            // readSoundbank
             val riffReader = RIFFReader(inputStream)
-            if (riffReader.format != "RIFF") {
-                throw RIFFInvalidFormatException("Input stream is not a valid RIFF stream!")
-            }
-            if (riffReader.type != "sfbk") {
-                throw RIFFInvalidFormatException("Input stream is not a valid SoundFont!")
-            }
-            while (riffReader.hasNextChunk) {
-                val chunk = riffReader.nextChunk
-                if (chunk?.format == "LIST") {
-                    if (chunk.type == "INFO") readInfoChunk(chunk)
-                    if (chunk.type == "sdta") readSdtaChunk(chunk)
-                    if (chunk.type == "pdta") readPdtaChunk(chunk)
+            if (riffReader.format != "RIFF") throw RIFFInvalidFormatException("Input stream is not a valid RIFF stream!")
+            if (riffReader.type != "sfbk") throw RIFFInvalidFormatException("Input stream is not a valid SoundFont!")
+
+            riffReader.forEach {
+                if (it?.format == "LIST") {
+                    if (it.type == "INFO") readInfoChunk(it)
+                    if (it.type == "sdta") readSdtaChunk(it)
+                    if (it.type == "pdta") readPdtaChunk(it)
                 }
             }
-        } catch (io: IOException) {
-            io.printStackTrace()
         } finally {
             inputStream.close()
         }
@@ -187,7 +178,7 @@ class SF2Soundbank(inputStream: InputStream) {
     }
 
     fun readPdtaChunk(riffReader: RIFFReader) {
-        TODO()
+        //    TODO()
     }
 
 }

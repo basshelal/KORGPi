@@ -3,7 +3,6 @@ package com.github.basshelal.korgpi.sf2
 import com.github.basshelal.korgpi.extensions.B
 import com.github.basshelal.korgpi.extensions.I
 import com.github.basshelal.korgpi.extensions.S
-import com.sun.media.sound.SF2Region
 
 open class SF2Region {
 
@@ -14,7 +13,7 @@ open class SF2Region {
     operator fun contains(generator: Int): Boolean = generators.contains(generator)
 
     fun getShort(generator: Int): Short {
-        return generators[generator] ?: SF2Region.getDefaultValue(generator)
+        return generators[generator] ?: getDefaultValue(generator)
     }
 
     fun putShort(generator: Int, value: Short) {

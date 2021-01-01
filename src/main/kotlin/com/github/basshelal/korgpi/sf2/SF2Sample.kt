@@ -1,3 +1,5 @@
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+
 package com.github.basshelal.korgpi.sf2
 
 import com.github.basshelal.korgpi.extensions.F

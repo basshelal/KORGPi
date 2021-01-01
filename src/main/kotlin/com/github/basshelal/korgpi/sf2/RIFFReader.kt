@@ -9,7 +9,7 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.math.min
 
-class RIFFReader(val stream: InputStream) : InputStream() {
+class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader?> {
 
     private val root: RIFFReader
     private var _filePointer: Long = 0L
@@ -76,13 +76,22 @@ class RIFFReader(val stream: InputStream) : InputStream() {
             return lastIterator
         }
 
+    override fun iterator(): Iterator<RIFFReader?> {
+        return object : Iterator<RIFFReader?> {
+            override fun hasNext(): Boolean = hasNextChunk
+
+            override fun next(): RIFFReader? = nextChunk
+
+        }
+    }
+
     fun readFully(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size) {
         if (length < 0) throw IndexOutOfBoundsException()
         var off = offset
         var len = length
-        while (length > 0) {
-            val s = read(buffer, offset, length)
-            if (s < 0) throw EOFException()
+        while (len > 0) {
+            val s = read(buffer, off, len)
+            if (s < 0) throw EOFException("$s \n $buffer $off $len")
             if (s == 0) Thread.yield()
             off += s
             len -= s
@@ -243,5 +252,3 @@ class RIFFReader(val stream: InputStream) : InputStream() {
         stream.close()
     }
 }
-
-class RIFFInvalidFormatException(s: String) : IOException(s)
