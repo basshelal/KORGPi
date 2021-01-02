@@ -14,6 +14,10 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 application {
     mainClassName = "com.github.basshelal.korgpi.app.AppKt"
 }
@@ -30,6 +34,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     testImplementation(kotlin("test-junit5"))
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
     implementation("no.tornado:tornadofx:1.7.20")
     implementation("com.jfoenix:jfoenix:9.0.10")
     implementation("com.diogonunes:JColor:5.0.0")
