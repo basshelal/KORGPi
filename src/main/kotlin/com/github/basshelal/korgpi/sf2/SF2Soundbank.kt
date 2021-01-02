@@ -75,7 +75,7 @@ class SF2Soundbank(inputStream: InputStream) {
             if (riffReader.type != "sfbk") throw RIFFInvalidFormatException("Input stream is not a valid SoundFont!")
 
             riffReader.forEach {
-                if (it?.format == "LIST") {
+                if (it.format == "LIST") {
                     if (it.type == "INFO") readInfoChunk(it)
                     if (it.type == "sdta") readSdtaChunk(it)
                     if (it.type == "pdta") readPdtaChunk(it)
@@ -87,10 +87,8 @@ class SF2Soundbank(inputStream: InputStream) {
     }
 
     fun readInfoChunk(riffReader: RIFFReader) {
-        while (riffReader.hasNextChunk) {
-            val chunk: RIFFReader? = riffReader.nextChunk
-            val format = chunk?.format
-            when (format) {
+        riffReader.forEach { chunk ->
+            when (chunk.format) {
                 "ifil" -> {
                     this.major = chunk.readUnsignedShort()
                     this.minor = chunk.readUnsignedShort()
@@ -131,9 +129,8 @@ class SF2Soundbank(inputStream: InputStream) {
     }
 
     fun readSdtaChunk(riffReader: RIFFReader) {
-        while (riffReader.hasNextChunk) {
-            val chunk: RIFFReader? = riffReader.nextChunk
-            if (chunk?.format == "smpl") {
+        riffReader.forEach { chunk ->
+            if (chunk.format == "smpl") {
                 if (!largeFormat) {
                     val sampleData = ByteArray(chunk.available())
                     var read = 0
@@ -148,16 +145,14 @@ class SF2Soundbank(inputStream: InputStream) {
                         }
                     }
                     this.sampleData = ModelByteBuffer(sampleData)
-                    //chunk.read(sampleData);
                 } else {
-                    sampleData = ModelByteBuffer(sampleFile,
+                    this.sampleData = ModelByteBuffer(sampleFile,
                             chunk.filePointer, chunk.available().L)
                 }
             }
-            if (chunk?.format == "sm24") {
+            if (chunk.format == "sm24") {
                 if (!largeFormat) {
                     val sampleData24 = ByteArray(chunk.available())
-                    //chunk.read(sampleData24);
                     var read = 0
                     val avail = chunk.available()
                     while (read != avail) {
@@ -171,7 +166,7 @@ class SF2Soundbank(inputStream: InputStream) {
                     }
                     this.sampleData24 = ModelByteBuffer(sampleData24)
                 } else {
-                    sampleData24 = ModelByteBuffer(sampleFile,
+                    this.sampleData24 = ModelByteBuffer(sampleFile,
                             chunk.filePointer, chunk.available().L)
                 }
             }
@@ -189,10 +184,8 @@ class SF2Soundbank(inputStream: InputStream) {
         val instruments_splits_gen = mutableListOf<SF2LayerRegion?>()
         val instruments_splits_mod = mutableListOf<SF2LayerRegion?>()
 
-        riffReader.forEachIndexed { index: Int, chunk: RIFFReader? ->
-            val format = chunk?.format
-
-            when (format) {
+        riffReader.forEach { chunk: RIFFReader ->
+            when (chunk.format) {
                 "phdr" -> {
                     // Preset Header / Instrument
                     if (chunk.available() % 38 != 0) throw IllegalStateException("RIFF Invalid Data")
@@ -423,5 +416,7 @@ class SF2Soundbank(inputStream: InputStream) {
         }
 
     }
+
+    // TODO: 02/01/2021 Missing SF2 Writing and editing functions
 
 }

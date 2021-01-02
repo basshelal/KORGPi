@@ -9,7 +9,7 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.math.min
 
-class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader?> {
+class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> {
 
     private val root: RIFFReader
     private var _filePointer: Long = 0L
@@ -76,11 +76,11 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader?>
             return lastIterator
         }
 
-    override fun iterator(): Iterator<RIFFReader?> {
-        return object : Iterator<RIFFReader?> {
+    override fun iterator(): Iterator<RIFFReader> {
+        return object : Iterator<RIFFReader> {
             override fun hasNext(): Boolean = hasNextChunk
 
-            override fun next(): RIFFReader? = nextChunk
+            override fun next(): RIFFReader = nextChunk!!
 
         }
     }

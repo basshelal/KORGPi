@@ -3,4 +3,4 @@
 import kotlin.test.assertEquals
 
 
-inline infix fun Any?.mustEqual(other: Any?) = assertEquals(this, other)
+internal inline infix fun Any?.mustEqual(other: Any?) = assertEquals(this, other)

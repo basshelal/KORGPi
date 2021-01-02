@@ -28,8 +28,26 @@ class SF2 {
     }
 
     @Test
-    fun `Names are equal`() {
+    fun `Variables are equal`() {
         JSoundbank.name mustEqual KSoundbank.name
+        JSoundbank.romName mustEqual KSoundbank.romName
+        JSoundbank.romVersionMajor mustEqual KSoundbank.romVersionMajor
+        JSoundbank.romVersionMinor mustEqual KSoundbank.romVersionMinor
+        JSoundbank.targetEngine mustEqual KSoundbank.targetEngine
+        JSoundbank.creationDate mustEqual KSoundbank.creationDate
+        JSoundbank.product mustEqual KSoundbank.product
+        JSoundbank.tools mustEqual KSoundbank.tools
+
+        JSoundbank.samples.size mustEqual KSoundbank.samples.size
+
+        JSoundbank.instruments.size mustEqual KSoundbank.instruments.size
+        JSoundbank.layers.size mustEqual KSoundbank.layers.size
+
+        JSoundbank.samples.first().dataBuffer.capacity() mustEqual
+                KSoundbank.samples.first().data?.capacity()
+
+        JSoundbank.samples.last().dataBuffer.capacity() mustEqual
+                KSoundbank.samples.last().data?.capacity()
     }
 
 
