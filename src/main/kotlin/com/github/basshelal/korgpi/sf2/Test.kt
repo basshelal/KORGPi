@@ -9,8 +9,8 @@ fun main() {
     com.sun.media.sound.SF2Soundbank(File("res/Example.sf2")).also {
         logD(it)
         logD(it.name)
-        logD(it.samples.joinToString("\n"))
-        logD("Total: ${it.samples.size}")
+        logD("Total Samples: ${it.samples.size}")
+        logD("Total Layers: ${it.layers.size}")
     }
 
     logD("----------------------------")
@@ -19,7 +19,7 @@ fun main() {
     com.github.basshelal.korgpi.sf2.SF2Soundbank("res/Example.sf2").also {
         logD(it)
         logD(it.name)
-        logD(it.samples.joinToString("\n"))
-        logD("Total: ${it.samples.size}")
+        logD("Total Samples: ${it.samples.size}")
+        logD("Total Layers: ${it.layers.size}")
     }
 }

@@ -2,6 +2,7 @@
 
 package com.github.basshelal.korgpi.sf2
 
+import com.github.basshelal.korgpi.extensions.I
 import com.github.basshelal.korgpi.extensions.L
 import com.sun.media.sound.ModelByteBuffer
 import java.io.File
@@ -178,7 +179,249 @@ class SF2Soundbank(inputStream: InputStream) {
     }
 
     fun readPdtaChunk(riffReader: RIFFReader) {
-        //    TODO()
+        val presets = mutableListOf<SF2Instrument>()
+        val presets_bagNdx = mutableListOf<Int>()
+        val presets_splits_gen = mutableListOf<SF2InstrumentRegion?>()
+        val presets_splits_mod = mutableListOf<SF2InstrumentRegion?>()
+
+        val instruments = mutableListOf<SF2Layer>()
+        val instruments_bagNdx = mutableListOf<Int>()
+        val instruments_splits_gen = mutableListOf<SF2LayerRegion?>()
+        val instruments_splits_mod = mutableListOf<SF2LayerRegion?>()
+
+        riffReader.forEachIndexed { index: Int, chunk: RIFFReader? ->
+            val format = chunk?.format
+
+            when (format) {
+                "phdr" -> {
+                    // Preset Header / Instrument
+                    if (chunk.available() % 38 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    val count: Int = chunk.available() / 38
+                    for (i in 0 until count) {
+                        SF2Instrument(/*this*/).also { preset ->
+                            preset.name = chunk.readString(20)
+                            preset.preset = chunk.readUnsignedShort()
+                            preset.bank = chunk.readUnsignedShort()
+                            presets_bagNdx.add(chunk.readUnsignedShort())
+                            preset.library = chunk.readUnsignedInt()
+                            preset.genre = chunk.readUnsignedInt()
+                            preset.morphology = chunk.readUnsignedInt()
+                            presets.add(preset)
+                            if (i != count - 1) this.instruments.add(preset)
+                        }
+                    }
+                }
+                "pbag" -> {
+                    // Preset Zones / Instrument splits
+                    if (chunk.available() % 4 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    var count: Int = chunk.available() / 4
+
+                    // Skip first record
+                    kotlin.run {
+                        val gencount = chunk.readUnsignedShort()
+                        val modcount = chunk.readUnsignedShort()
+                        while (presets_splits_gen.size < gencount) presets_splits_gen.add(null)
+                        while (presets_splits_mod.size < modcount) presets_splits_mod.add(null)
+                        count--
+                    }
+
+                    if (presets_bagNdx.isEmpty()) throw IllegalStateException("RIFF Invalid Data")
+
+                    val offset = presets_bagNdx.first()
+                    // Offset should be 0 (but just in case)
+                    for (i in 0 until offset) {
+                        if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+
+                        val gencount = chunk.readUnsignedShort()
+                        val modcount = chunk.readUnsignedShort()
+                        while (presets_splits_gen.size < gencount) presets_splits_gen.add(null)
+                        while (presets_splits_mod.size < modcount) presets_splits_mod.add(null)
+                        count--
+                    }
+
+                    for (i in 0 until presets_bagNdx.size - 1) {
+                        val zone_count = presets_bagNdx[i + 1] - presets_bagNdx[i]
+                        val preset = presets[i]
+                        for (ii in 0 until zone_count) {
+                            if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                            val gencount = chunk.readUnsignedShort()
+                            val modcount = chunk.readUnsignedShort()
+                            val split = SF2InstrumentRegion()
+                            preset.regions.add(split)
+                            while (presets_splits_gen.size < gencount) presets_splits_gen.add(split)
+                            while (presets_splits_mod.size < modcount) presets_splits_mod.add(split)
+                            count--
+                        }
+                    }
+                }
+                "pmod" -> {
+                    // Preset Modulators / Split Modulators
+                    for (i in 0 until presets_splits_mod.size) {
+                        val modulator = SF2Modulator()
+                        modulator.sourceOperator = chunk.readUnsignedShort()
+                        modulator.destinationOperator = chunk.readUnsignedShort()
+                        modulator.amount = chunk.readShort()
+                        modulator.amountSourceOperator = chunk.readUnsignedShort()
+                        modulator.transportOperator = chunk.readUnsignedShort()
+                        val split = presets_splits_mod[i]
+                        if (split != null) split.modulators.add(modulator)
+                    }
+                }
+                "pgen" -> {
+                    // Preset Generators / Split Generators
+                    for (i in 0 until presets_splits_gen.size) {
+                        val operator = chunk.readUnsignedShort()
+                        val amount = chunk.readShort()
+                        val split = presets_splits_gen[i]
+                        if (split != null) split.generators[operator] = amount
+                    }
+                }
+                "inst" -> {
+                    // Instrument Header / Layers
+                    if (chunk.available() % 22 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    val count = chunk.available() / 22
+                    for (i in 0 until count) {
+                        val layer = SF2Layer(/*this*/)
+                        layer.name = chunk.readString(20)
+                        instruments_bagNdx.add(chunk.readUnsignedShort())
+                        instruments.add(layer)
+                        if (i != count - 1) this.layers.add(layer)
+                    }
+                }
+                "ibag" -> {
+                    // Instrument Zones / Layer splits
+                    if (chunk.available() % 4 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    var count = chunk.available() / 4
+
+                    // Skip first record
+                    kotlin.run {
+                        val gencount = chunk.readUnsignedShort()
+                        val modcount = chunk.readUnsignedShort()
+                        while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(null)
+                        while (instruments_splits_mod.size < modcount) instruments_splits_mod.add(null)
+                        count--
+                    }
+
+                    if (instruments_bagNdx.isEmpty()) throw IllegalStateException("RIFF Invalid Data")
+
+                    val offset = instruments_bagNdx.first()
+                    // Offset should be 0 but (just in case)
+                    for (i in 0 until offset) {
+                        if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                        val gencount = chunk.readUnsignedShort()
+                        val modcount = chunk.readUnsignedShort()
+                        while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(null)
+                        while (instruments_splits_mod.size < modcount) instruments_splits_mod.add(null)
+                        count--
+                    }
+
+                    for (i in 0 until instruments_bagNdx.size - 1) {
+                        val zone_count = instruments_bagNdx[i + 1] - instruments_bagNdx[i]
+                        val layer = layers[i]
+                        for (ii in 0 until zone_count) {
+                            if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                            val gencount = chunk.readUnsignedShort()
+                            val modcount = chunk.readUnsignedShort()
+                            val split = SF2LayerRegion()
+                            layer.regions.add(split)
+                            while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(split)
+                            while (instruments_splits_mod.size < modcount) instruments_splits_mod.add(split)
+                            count--
+                        }
+                    }
+                }
+                "imod" -> {
+                    // Instrument Modulators / Split Modulators
+                    for (i in 0 until instruments_splits_mod.size) {
+                        val modulator = SF2Modulator()
+                        modulator.sourceOperator = chunk.readUnsignedShort()
+                        modulator.destinationOperator = chunk.readUnsignedShort()
+                        modulator.amount = chunk.readShort()
+                        modulator.amountSourceOperator = chunk.readUnsignedShort()
+                        modulator.transportOperator = chunk.readUnsignedShort()
+                        if (i < 0 || i >= instruments_splits_gen.size) throw IllegalStateException("RIFF Invalid Data")
+                        val split = instruments_splits_gen[i]
+                        if (split != null) split.modulators.add(modulator)
+                    }
+                }
+                "igen" -> {
+                    // Instrument Generators / Split Generators
+                    for (i in 0 until instruments_splits_gen.size) {
+                        val operator = chunk.readUnsignedShort()
+                        val amount = chunk.readShort()
+                        val split = instruments_splits_gen[i]
+                        if (split != null) split.generators[operator] = amount
+                    }
+                }
+                "shdr" -> {
+                    // Sample Headers
+                    if (chunk.available() % 46 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    val count = chunk.available() / 46
+                    for (i in 0 until count) {
+                        val sample = SF2Sample(/*this*/)
+                        sample.name = chunk.readString(20)
+                        val start = chunk.readUnsignedInt()
+                        val end = chunk.readUnsignedInt()
+                        if (sampleData != null) sample.data = sampleData?.subbuffer(start * 2, end * 2, true)
+                        if (sampleData24 != null) sample.data24 = sampleData24?.subbuffer(start, end, true)
+                        sample.startLoop = chunk.readUnsignedInt() - start
+                        sample.endLoop = chunk.readUnsignedInt() - start
+                        if (sample.startLoop < 0) sample.startLoop = -1
+                        if (sample.endLoop < 0) sample.endLoop = -1
+                        sample.sampleRate = chunk.readUnsignedInt()
+                        sample.originalPitch = chunk.readUnsignedByte()
+                        sample.pitchCorrection = chunk.readByte()
+                        sample.sampleLink = chunk.readUnsignedShort()
+                        sample.sampleType = chunk.readUnsignedShort()
+                        if (i != count - 1) this.samples.add(sample)
+                    }
+                }
+            }
+        }
+
+        this.layers.forEach { layer ->
+            var globalSplit: SF2Region? = null
+            layer.regions.forEach { split ->
+                val sampleid = split.generators[SF2Region.GENERATOR_SAMPLEID]?.I
+                if (sampleid != null) {
+                    split.generators.remove(SF2Region.GENERATOR_SAMPLEID)
+                    if (sampleid < 0 || sampleid >= samples.size) throw IllegalStateException("RIFF Invalid Data")
+                    split.sample = samples[sampleid]
+                } else {
+                    globalSplit = split
+                }
+            }
+            globalSplit?.also {
+                layer.regions.remove(it)
+                val gsplit = SF2Region()
+                gsplit.generators = it.generators
+                gsplit.modulators = it.modulators
+                layer.globalRegion = gsplit
+            }
+        }
+
+        this.instruments.forEach { instrument ->
+            var globalSplit: SF2Region? = null
+            instrument.regions.forEach { split ->
+                val instrumentId = split.generators[SF2Region.GENERATOR_INSTRUMENT]?.I
+                if (instrumentId != null) {
+                    split.generators.remove(SF2Region.GENERATOR_INSTRUMENT)
+                    if (instrumentId < 0 || instrumentId >= layers.size) throw IllegalStateException("RIFF Invalid Data")
+                    split.layer = layers[instrumentId]
+                } else {
+                    globalSplit = split
+                }
+            }
+
+            globalSplit?.also {
+                instrument.regions.remove(it)
+                val gsplit = SF2Region()
+                gsplit.generators = it.generators
+                gsplit.modulators = it.modulators
+                instrument.globalRegion = gsplit
+            }
+        }
+
     }
 
 }

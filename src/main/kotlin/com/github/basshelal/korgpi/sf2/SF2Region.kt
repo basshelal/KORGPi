@@ -6,9 +6,9 @@ import com.github.basshelal.korgpi.extensions.S
 
 open class SF2Region {
 
-    val generators: MutableMap<Int, Short> = mutableMapOf()
+    var generators: MutableMap<Int, Short> = mutableMapOf()
 
-    val modulators: MutableList<SF2Modulator> = mutableListOf()
+    var modulators: MutableList<SF2Modulator> = mutableListOf()
 
     operator fun contains(generator: Int): Boolean = generators.contains(generator)
 
