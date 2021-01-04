@@ -130,8 +130,8 @@ class SF2Soundbank(inputStream: InputStream) {
 
     fun readSdtaChunk(riffReader: RIFFReader) {
         riffReader.forEach { chunk ->
-            if (chunk.format == "smpl") {
-                if (!largeFormat) {
+            when (chunk.format) {
+                "smpl" -> if (!largeFormat) {
                     val sampleData = ByteArray(chunk.available())
                     var read = 0
                     val avail = chunk.available()
@@ -149,9 +149,7 @@ class SF2Soundbank(inputStream: InputStream) {
                     this.sampleData = ModelByteBuffer(sampleFile,
                             chunk.filePointer, chunk.available().L)
                 }
-            }
-            if (chunk.format == "sm24") {
-                if (!largeFormat) {
+                "sm24" -> if (!largeFormat) {
                     val sampleData24 = ByteArray(chunk.available())
                     var read = 0
                     val avail = chunk.available()
