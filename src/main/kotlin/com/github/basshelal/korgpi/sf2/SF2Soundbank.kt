@@ -1,9 +1,8 @@
-@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE", "NOTHING_TO_INLINE")
 
 package com.github.basshelal.korgpi.sf2
 
 import com.github.basshelal.korgpi.extensions.I
-import com.github.basshelal.korgpi.extensions.L
 import com.sun.media.sound.ModelByteBuffer
 import java.io.File
 import java.io.FileInputStream
@@ -16,53 +15,49 @@ typealias MByteBuffer = ModelByteBuffer
 class SF2Soundbank(inputStream: InputStream) {
 
     // version of the Sound Font RIFF file
-    var major = 2
-    var minor = 1
+    var major: Int = -1
+    var minor: Int = -1
 
     // target Sound Engine
-    var targetEngine = "EMU8000"
+    var targetEngine: String = "EMU8000"
 
     // Sound Font Bank Name
-    var name = "untitled"
+    var name: String = "untitled"
 
     // Sound ROM Name
-    var romName: String? = null
+    var romName: String = ""
 
     // Sound ROM Version
-    var romVersionMajor = -1
-    var romVersionMinor = -1
+    var romVersionMajor: Int = -1
+    var romVersionMinor: Int = -1
 
     // Date of Creation of the Bank
-    var creationDate: String? = null
+    var creationDate: String = ""
 
     // Sound Designers and Engineers for the Bank
-    var engineers: String? = null
+    var engineers: String = ""
 
     // Product for which the Bank was intended
-    var product: String? = null
+    var product: String = ""
 
     // Copyright message
-    var copyright: String? = null
+    var copyright: String = ""
 
     // Comments
-    var comments: String? = null
+    var comments: String = ""
 
     // The SoundFont tools used to create and alter the bank
-    var tools: String? = null
+    var tools: String = ""
 
     // The Sample Data loaded from the SoundFont
     var sampleData: MByteBuffer? = null
     var sampleData24: MByteBuffer? = null
-    var sampleFile: File? = null
-    var largeFormat = false
+
     val instruments: MutableList<SF2Instrument> = mutableListOf()
     val layers: MutableList<SF2Layer> = mutableListOf()
     val samples: MutableList<SF2Sample> = mutableListOf()
 
-    constructor(file: File) : this(FileInputStream(file)) {
-        this.largeFormat = true
-        this.sampleFile = file
-    }
+    constructor(file: File) : this(FileInputStream(file))
 
     constructor(url: URL) : this(url.openStream())
 
@@ -74,11 +69,11 @@ class SF2Soundbank(inputStream: InputStream) {
             if (riffReader.format != "RIFF") throw RIFFInvalidFormatException("Input stream is not a valid RIFF stream!")
             if (riffReader.type != "sfbk") throw RIFFInvalidFormatException("Input stream is not a valid SoundFont!")
 
-            riffReader.forEach {
-                if (it.format == "LIST") {
-                    if (it.type == "INFO") readInfoChunk(it)
-                    if (it.type == "sdta") readSdtaChunk(it)
-                    if (it.type == "pdta") readPdtaChunk(it)
+            riffReader.forEach { chunk ->
+                if (chunk.format == "LIST") {
+                    if (chunk.type == "INFO") readInfoChunk(chunk)
+                    if (chunk.type == "sdta") readSdtaChunk(chunk)
+                    if (chunk.type == "pdta") readPdtaChunk(chunk)
                 }
             }
         } finally {
@@ -86,7 +81,7 @@ class SF2Soundbank(inputStream: InputStream) {
         }
     }
 
-    fun readInfoChunk(riffReader: RIFFReader) {
+    private inline fun readInfoChunk(riffReader: RIFFReader) {
         riffReader.forEach { chunk ->
             when (chunk.format) {
                 "ifil" -> {
@@ -126,15 +121,16 @@ class SF2Soundbank(inputStream: InputStream) {
                 }
             }
         }
+        // TODO: 05/01/2021 Verify all necessary was loaded, else throw an Exception
     }
 
-    fun readSdtaChunk(riffReader: RIFFReader) {
+    private inline fun readSdtaChunk(riffReader: RIFFReader) {
         riffReader.forEach { chunk ->
             when (chunk.format) {
-                "smpl" -> if (!largeFormat) {
-                    val sampleData = ByteArray(chunk.available())
+                "smpl" -> {
+                    val sampleData = ByteArray(chunk.available)
                     var read = 0
-                    val avail = chunk.available()
+                    val avail = chunk.available
                     while (read != avail) {
                         if (avail - read > 65536) {
                             chunk.readFully(sampleData, read, 65536)
@@ -145,14 +141,11 @@ class SF2Soundbank(inputStream: InputStream) {
                         }
                     }
                     this.sampleData = ModelByteBuffer(sampleData)
-                } else {
-                    this.sampleData = ModelByteBuffer(sampleFile,
-                            chunk.filePointer, chunk.available().L)
                 }
-                "sm24" -> if (!largeFormat) {
-                    val sampleData24 = ByteArray(chunk.available())
+                "sm24" -> {
+                    val sampleData24 = ByteArray(chunk.available)
                     var read = 0
-                    val avail = chunk.available()
+                    val avail = chunk.available
                     while (read != avail) {
                         if (avail - read > 65536) {
                             chunk.readFully(sampleData24, read, 65536)
@@ -163,15 +156,12 @@ class SF2Soundbank(inputStream: InputStream) {
                         }
                     }
                     this.sampleData24 = ModelByteBuffer(sampleData24)
-                } else {
-                    this.sampleData24 = ModelByteBuffer(sampleFile,
-                            chunk.filePointer, chunk.available().L)
                 }
             }
         }
     }
 
-    fun readPdtaChunk(riffReader: RIFFReader) {
+    private inline fun readPdtaChunk(riffReader: RIFFReader) {
         val presets = mutableListOf<SF2Instrument>()
         val presets_bagNdx = mutableListOf<Int>()
         val presets_splits_gen = mutableListOf<SF2InstrumentRegion?>()
@@ -186,7 +176,7 @@ class SF2Soundbank(inputStream: InputStream) {
             when (chunk.format) {
                 "phdr" -> {
                     // Preset Header / Instrument
-                    if (chunk.available() % 38 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    if (chunk.available() % 38 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                     val count: Int = chunk.available() / 38
                     for (i in 0 until count) {
                         SF2Instrument(/*this*/).also { preset ->
@@ -204,7 +194,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 }
                 "pbag" -> {
                     // Preset Zones / Instrument splits
-                    if (chunk.available() % 4 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    if (chunk.available() % 4 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                     var count: Int = chunk.available() / 4
 
                     // Skip first record
@@ -216,12 +206,12 @@ class SF2Soundbank(inputStream: InputStream) {
                         count--
                     }
 
-                    if (presets_bagNdx.isEmpty()) throw IllegalStateException("RIFF Invalid Data")
+                    if (presets_bagNdx.isEmpty()) throw RIFFInvalidDataException("RIFF Invalid Data")
 
                     val offset = presets_bagNdx.first()
                     // Offset should be 0 (but just in case)
                     for (i in 0 until offset) {
-                        if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                        if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
 
                         val gencount = chunk.readUnsignedShort()
                         val modcount = chunk.readUnsignedShort()
@@ -234,7 +224,7 @@ class SF2Soundbank(inputStream: InputStream) {
                         val zone_count = presets_bagNdx[i + 1] - presets_bagNdx[i]
                         val preset = presets[i]
                         for (ii in 0 until zone_count) {
-                            if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                            if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                             val gencount = chunk.readUnsignedShort()
                             val modcount = chunk.readUnsignedShort()
                             val split = SF2InstrumentRegion()
@@ -269,7 +259,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 }
                 "inst" -> {
                     // Instrument Header / Layers
-                    if (chunk.available() % 22 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    if (chunk.available() % 22 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                     val count = chunk.available() / 22
                     for (i in 0 until count) {
                         val layer = SF2Layer(/*this*/)
@@ -281,7 +271,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 }
                 "ibag" -> {
                     // Instrument Zones / Layer splits
-                    if (chunk.available() % 4 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    if (chunk.available() % 4 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                     var count = chunk.available() / 4
 
                     // Skip first record
@@ -293,12 +283,12 @@ class SF2Soundbank(inputStream: InputStream) {
                         count--
                     }
 
-                    if (instruments_bagNdx.isEmpty()) throw IllegalStateException("RIFF Invalid Data")
+                    if (instruments_bagNdx.isEmpty()) throw RIFFInvalidDataException("RIFF Invalid Data")
 
                     val offset = instruments_bagNdx.first()
                     // Offset should be 0 but (just in case)
                     for (i in 0 until offset) {
-                        if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                        if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                         val gencount = chunk.readUnsignedShort()
                         val modcount = chunk.readUnsignedShort()
                         while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(null)
@@ -310,7 +300,7 @@ class SF2Soundbank(inputStream: InputStream) {
                         val zone_count = instruments_bagNdx[i + 1] - instruments_bagNdx[i]
                         val layer = layers[i]
                         for (ii in 0 until zone_count) {
-                            if (count == 0) throw IllegalStateException("RIFF Invalid Data")
+                            if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                             val gencount = chunk.readUnsignedShort()
                             val modcount = chunk.readUnsignedShort()
                             val split = SF2LayerRegion()
@@ -330,7 +320,7 @@ class SF2Soundbank(inputStream: InputStream) {
                         modulator.amount = chunk.readShort()
                         modulator.amountSourceOperator = chunk.readUnsignedShort()
                         modulator.transportOperator = chunk.readUnsignedShort()
-                        if (i < 0 || i >= instruments_splits_gen.size) throw IllegalStateException("RIFF Invalid Data")
+                        if (i < 0 || i >= instruments_splits_gen.size) throw RIFFInvalidDataException("RIFF Invalid Data")
                         val split = instruments_splits_gen[i]
                         if (split != null) split.modulators.add(modulator)
                     }
@@ -346,7 +336,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 }
                 "shdr" -> {
                     // Sample Headers
-                    if (chunk.available() % 46 != 0) throw IllegalStateException("RIFF Invalid Data")
+                    if (chunk.available() % 46 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
                     val count = chunk.available() / 46
                     for (i in 0 until count) {
                         val sample = SF2Sample(/*this*/)
@@ -376,7 +366,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 val sampleid = split.generators[SF2Region.GENERATOR_SAMPLEID]?.I
                 if (sampleid != null) {
                     split.generators.remove(SF2Region.GENERATOR_SAMPLEID)
-                    if (sampleid < 0 || sampleid >= samples.size) throw IllegalStateException("RIFF Invalid Data")
+                    if (sampleid < 0 || sampleid >= samples.size) throw RIFFInvalidDataException("RIFF Invalid Data")
                     split.sample = samples[sampleid]
                 } else {
                     globalSplit = split
@@ -397,7 +387,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 val instrumentId = split.generators[SF2Region.GENERATOR_INSTRUMENT]?.I
                 if (instrumentId != null) {
                     split.generators.remove(SF2Region.GENERATOR_INSTRUMENT)
-                    if (instrumentId < 0 || instrumentId >= layers.size) throw IllegalStateException("RIFF Invalid Data")
+                    if (instrumentId < 0 || instrumentId >= layers.size) throw RIFFInvalidDataException("RIFF Invalid Data")
                     split.layer = layers[instrumentId]
                 } else {
                     globalSplit = split
