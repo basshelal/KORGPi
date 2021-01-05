@@ -239,6 +239,8 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
         return n - remaining
     }
 
+    inline val available: Int get() = this.available()
+
     override fun available(): Int {
         return if (avail > Int.MAX_VALUE) Int.MAX_VALUE else avail.I
     }

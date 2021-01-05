@@ -25,4 +25,15 @@ class SF2Sample {
     override fun toString(): String {
         return "Sample: $name"
     }
+
+    object SFSampleLink {
+        const val MONO_SAMPLE = 1
+        const val RIGHT_SAMPLE = 2
+        const val LEFT_SAMPLE = 4
+        const val LINKED_SAMPLE = 8
+        const val ROM_MONO_SAMPLE = 0x8001
+        const val ROM_RIGHT_SAMPLE = 0x8002
+        const val ROM_LEFT_SAMPLE = 0x8004
+        const val ROM_LINKED_SAMPLE = 0x8008
+    }
 }

@@ -94,35 +94,35 @@ class SF2Soundbank(inputStream: InputStream) {
                     this.minor = chunk.readUnsignedShort()
                 }
                 "isng" -> {
-                    this.targetEngine = chunk.readString(chunk.available())
+                    this.targetEngine = chunk.readString(chunk.available)
                 }
                 "INAM" -> {
-                    this.name = chunk.readString(chunk.available())
+                    this.name = chunk.readString(chunk.available)
                 }
                 "irom" -> {
-                    this.romName = chunk.readString(chunk.available())
+                    this.romName = chunk.readString(chunk.available)
                 }
                 "iver" -> {
                     this.romVersionMajor = chunk.readUnsignedShort()
                     this.romVersionMinor = chunk.readUnsignedShort()
                 }
                 "ICRD" -> {
-                    this.creationDate = chunk.readString(chunk.available())
+                    this.creationDate = chunk.readString(chunk.available)
                 }
                 "IENG" -> {
-                    this.engineers = chunk.readString(chunk.available())
+                    this.engineers = chunk.readString(chunk.available)
                 }
                 "IPRD" -> {
-                    this.product = chunk.readString(chunk.available())
+                    this.product = chunk.readString(chunk.available)
                 }
                 "ICOP" -> {
-                    this.copyright = chunk.readString(chunk.available())
+                    this.copyright = chunk.readString(chunk.available)
                 }
                 "ICMT" -> {
-                    this.comments = chunk.readString(chunk.available())
+                    this.comments = chunk.readString(chunk.available)
                 }
                 "ISFT" -> {
-                    this.tools = chunk.readString(chunk.available())
+                    this.tools = chunk.readString(chunk.available)
                 }
             }
         }
