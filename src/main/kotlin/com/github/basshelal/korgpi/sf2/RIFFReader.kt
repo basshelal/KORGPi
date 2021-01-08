@@ -43,7 +43,7 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
             rawFourcc[0] = byte.B
             readFully(rawFourcc, 1, 3)
             this.fourcc = String(rawFourcc, Charsets.US_ASCII)
-            ckSize = readUnsignedInt()
+            ckSize = readUInt()
             avail = ckSize
 
             if (format == "RIFF" || format == "LIST") {
@@ -99,7 +99,7 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
     }
 
     // Read 32 bit unsigned integer from stream
-    fun readUnsignedInt(): Long {
+    fun readUInt(): Long {
         val ch1: Long = read().L
         val ch2: Long = read().L
         val ch3: Long = read().L
@@ -165,14 +165,14 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
     }
 
     // Read 8 bit unsigned integer from stream
-    fun readUnsignedByte(): Int {
+    fun readUByte(): Int {
         val ch = read()
         if (ch < 0) throw EOFException()
         return ch
     }
 
     // Read 16 bit unsigned integer from stream
-    fun readUnsignedShort(): Int {
+    fun readUShort(): Int {
         val ch1 = read()
         val ch2 = read()
         if (ch1 < 0) throw EOFException()
@@ -241,9 +241,7 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
 
     inline val available: Int get() = this.available()
 
-    override fun available(): Int {
-        return if (avail > Int.MAX_VALUE) Int.MAX_VALUE else avail.I
-    }
+    override fun available(): Int = if (avail > Int.MAX_VALUE) Int.MAX_VALUE else avail.I
 
     fun finish() {
         if (avail != 0L) skip(avail)

@@ -85,8 +85,8 @@ class SF2Soundbank(inputStream: InputStream) {
         riffReader.forEach { chunk ->
             when (chunk.format) {
                 "ifil" -> {
-                    this.major = chunk.readUnsignedShort()
-                    this.minor = chunk.readUnsignedShort()
+                    this.major = chunk.readUShort()
+                    this.minor = chunk.readUShort()
                 }
                 "isng" -> {
                     this.targetEngine = chunk.readString(chunk.available)
@@ -98,8 +98,8 @@ class SF2Soundbank(inputStream: InputStream) {
                     this.romName = chunk.readString(chunk.available)
                 }
                 "iver" -> {
-                    this.romVersionMajor = chunk.readUnsignedShort()
-                    this.romVersionMinor = chunk.readUnsignedShort()
+                    this.romVersionMajor = chunk.readUShort()
+                    this.romVersionMinor = chunk.readUShort()
                 }
                 "ICRD" -> {
                     this.creationDate = chunk.readString(chunk.available)
@@ -175,32 +175,37 @@ class SF2Soundbank(inputStream: InputStream) {
         riffReader.forEach { chunk: RIFFReader ->
             when (chunk.format) {
                 "phdr" -> {
-                    // Preset Header / Instrument
-                    if (chunk.available() % 38 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
-                    val count: Int = chunk.available() / 38
+                    // Preset Headers
+                    if (chunk.available % 38 != 0)
+                        throw RIFFInvalidDataException("PHDR sub chunk is not a multiple of 38 bytes in length")
+                    val count: Int = chunk.available / 38
                     for (i in 0 until count) {
-                        SF2Instrument(/*this*/).also { preset ->
+                        SF2Instrument().also { preset ->
                             preset.name = chunk.readString(20)
-                            preset.preset = chunk.readUnsignedShort()
-                            preset.bank = chunk.readUnsignedShort()
-                            presets_bagNdx.add(chunk.readUnsignedShort())
-                            preset.library = chunk.readUnsignedInt()
-                            preset.genre = chunk.readUnsignedInt()
-                            preset.morphology = chunk.readUnsignedInt()
-                            presets.add(preset)
-                            if (i != count - 1) this.instruments.add(preset)
+                            preset.preset = chunk.readUShort()
+                            preset.bank = chunk.readUShort()
+                            presets_bagNdx.add(chunk.readUShort())
+                            preset.library = chunk.readUInt()
+                            preset.genre = chunk.readUInt()
+                            preset.morphology = chunk.readUInt()
+                            // Add all except last, we must still read it though to move the read cursors
+                            if (i != count - 1) {
+                                presets.add(preset)
+                                this.instruments.add(preset)
+                            }
                         }
                     }
                 }
                 "pbag" -> {
-                    // Preset Zones / Instrument splits
-                    if (chunk.available() % 4 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
-                    var count: Int = chunk.available() / 4
+                    // Preset Zones
+                    if (chunk.available % 4 != 0)
+                        throw RIFFInvalidDataException("PBAG sub chunk is not a multiple of 4 bytes in length")
+                    var count: Int = chunk.available / 4
 
                     // Skip first record
                     kotlin.run {
-                        val gencount = chunk.readUnsignedShort()
-                        val modcount = chunk.readUnsignedShort()
+                        val gencount = chunk.readUShort()
+                        val modcount = chunk.readUShort()
                         while (presets_splits_gen.size < gencount) presets_splits_gen.add(null)
                         while (presets_splits_mod.size < modcount) presets_splits_mod.add(null)
                         count--
@@ -213,8 +218,8 @@ class SF2Soundbank(inputStream: InputStream) {
                     for (i in 0 until offset) {
                         if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
 
-                        val gencount = chunk.readUnsignedShort()
-                        val modcount = chunk.readUnsignedShort()
+                        val gencount = chunk.readUShort()
+                        val modcount = chunk.readUShort()
                         while (presets_splits_gen.size < gencount) presets_splits_gen.add(null)
                         while (presets_splits_mod.size < modcount) presets_splits_mod.add(null)
                         count--
@@ -225,8 +230,8 @@ class SF2Soundbank(inputStream: InputStream) {
                         val preset = presets[i]
                         for (ii in 0 until zone_count) {
                             if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
-                            val gencount = chunk.readUnsignedShort()
-                            val modcount = chunk.readUnsignedShort()
+                            val gencount = chunk.readUShort()
+                            val modcount = chunk.readUShort()
                             val split = SF2InstrumentRegion()
                             preset.regions.add(split)
                             while (presets_splits_gen.size < gencount) presets_splits_gen.add(split)
@@ -239,11 +244,11 @@ class SF2Soundbank(inputStream: InputStream) {
                     // Preset Modulators / Split Modulators
                     for (i in 0 until presets_splits_mod.size) {
                         val modulator = SF2Modulator()
-                        modulator.sourceOperator = chunk.readUnsignedShort()
-                        modulator.destinationOperator = chunk.readUnsignedShort()
+                        modulator.sourceOperator = chunk.readUShort()
+                        modulator.destinationOperator = chunk.readUShort()
                         modulator.amount = chunk.readShort()
-                        modulator.amountSourceOperator = chunk.readUnsignedShort()
-                        modulator.transportOperator = chunk.readUnsignedShort()
+                        modulator.amountSourceOperator = chunk.readUShort()
+                        modulator.transportOperator = chunk.readUShort()
                         val split = presets_splits_mod[i]
                         if (split != null) split.modulators.add(modulator)
                     }
@@ -251,7 +256,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 "pgen" -> {
                     // Preset Generators / Split Generators
                     for (i in 0 until presets_splits_gen.size) {
-                        val operator = chunk.readUnsignedShort()
+                        val operator = chunk.readUShort()
                         val amount = chunk.readShort()
                         val split = presets_splits_gen[i]
                         if (split != null) split.generators[operator] = amount
@@ -264,7 +269,7 @@ class SF2Soundbank(inputStream: InputStream) {
                     for (i in 0 until count) {
                         val layer = SF2Layer(/*this*/)
                         layer.name = chunk.readString(20)
-                        instruments_bagNdx.add(chunk.readUnsignedShort())
+                        instruments_bagNdx.add(chunk.readUShort())
                         instruments.add(layer)
                         if (i != count - 1) this.layers.add(layer)
                     }
@@ -276,8 +281,8 @@ class SF2Soundbank(inputStream: InputStream) {
 
                     // Skip first record
                     kotlin.run {
-                        val gencount = chunk.readUnsignedShort()
-                        val modcount = chunk.readUnsignedShort()
+                        val gencount = chunk.readUShort()
+                        val modcount = chunk.readUShort()
                         while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(null)
                         while (instruments_splits_mod.size < modcount) instruments_splits_mod.add(null)
                         count--
@@ -289,8 +294,8 @@ class SF2Soundbank(inputStream: InputStream) {
                     // Offset should be 0 but (just in case)
                     for (i in 0 until offset) {
                         if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
-                        val gencount = chunk.readUnsignedShort()
-                        val modcount = chunk.readUnsignedShort()
+                        val gencount = chunk.readUShort()
+                        val modcount = chunk.readUShort()
                         while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(null)
                         while (instruments_splits_mod.size < modcount) instruments_splits_mod.add(null)
                         count--
@@ -301,8 +306,8 @@ class SF2Soundbank(inputStream: InputStream) {
                         val layer = layers[i]
                         for (ii in 0 until zone_count) {
                             if (count == 0) throw RIFFInvalidDataException("RIFF Invalid Data")
-                            val gencount = chunk.readUnsignedShort()
-                            val modcount = chunk.readUnsignedShort()
+                            val gencount = chunk.readUShort()
+                            val modcount = chunk.readUShort()
                             val split = SF2LayerRegion()
                             layer.regions.add(split)
                             while (instruments_splits_gen.size < gencount) instruments_splits_gen.add(split)
@@ -315,11 +320,11 @@ class SF2Soundbank(inputStream: InputStream) {
                     // Instrument Modulators / Split Modulators
                     for (i in 0 until instruments_splits_mod.size) {
                         val modulator = SF2Modulator()
-                        modulator.sourceOperator = chunk.readUnsignedShort()
-                        modulator.destinationOperator = chunk.readUnsignedShort()
+                        modulator.sourceOperator = chunk.readUShort()
+                        modulator.destinationOperator = chunk.readUShort()
                         modulator.amount = chunk.readShort()
-                        modulator.amountSourceOperator = chunk.readUnsignedShort()
-                        modulator.transportOperator = chunk.readUnsignedShort()
+                        modulator.amountSourceOperator = chunk.readUShort()
+                        modulator.transportOperator = chunk.readUShort()
                         if (i < 0 || i >= instruments_splits_gen.size) throw RIFFInvalidDataException("RIFF Invalid Data")
                         val split = instruments_splits_gen[i]
                         if (split != null) split.modulators.add(modulator)
@@ -328,7 +333,7 @@ class SF2Soundbank(inputStream: InputStream) {
                 "igen" -> {
                     // Instrument Generators / Split Generators
                     for (i in 0 until instruments_splits_gen.size) {
-                        val operator = chunk.readUnsignedShort()
+                        val operator = chunk.readUShort()
                         val amount = chunk.readShort()
                         val split = instruments_splits_gen[i]
                         if (split != null) split.generators[operator] = amount
@@ -341,19 +346,19 @@ class SF2Soundbank(inputStream: InputStream) {
                     for (i in 0 until count) {
                         val sample = SF2Sample(/*this*/)
                         sample.name = chunk.readString(20)
-                        val start = chunk.readUnsignedInt()
-                        val end = chunk.readUnsignedInt()
+                        val start = chunk.readUInt()
+                        val end = chunk.readUInt()
                         if (sampleData != null) sample.data = sampleData?.subbuffer(start * 2, end * 2, true)
                         if (sampleData24 != null) sample.data24 = sampleData24?.subbuffer(start, end, true)
-                        sample.startLoop = chunk.readUnsignedInt() - start
-                        sample.endLoop = chunk.readUnsignedInt() - start
+                        sample.startLoop = chunk.readUInt() - start
+                        sample.endLoop = chunk.readUInt() - start
                         if (sample.startLoop < 0) sample.startLoop = -1
                         if (sample.endLoop < 0) sample.endLoop = -1
-                        sample.sampleRate = chunk.readUnsignedInt()
-                        sample.originalPitch = chunk.readUnsignedByte()
+                        sample.sampleRate = chunk.readUInt()
+                        sample.originalPitch = chunk.readUByte()
                         sample.pitchCorrection = chunk.readByte()
-                        sample.sampleLink = chunk.readUnsignedShort()
-                        sample.sampleType = chunk.readUnsignedShort()
+                        sample.sampleLink = chunk.readUShort()
+                        sample.sampleType = chunk.readUShort()
                         if (i != count - 1) this.samples.add(sample)
                     }
                 }

@@ -4,6 +4,7 @@ package com.github.basshelal.korgpi.sf2
 
 import com.github.basshelal.korgpi.extensions.F
 import com.sun.media.sound.ModelByteBuffer
+import java.nio.FloatBuffer
 import javax.sound.sampled.AudioFormat
 
 class SF2Sample {
@@ -23,6 +24,21 @@ class SF2Sample {
 
     override fun toString(): String {
         return "Sample: $name"
+    }
+
+    private object TODO { // TODO: 08/01/2021
+        val is24Bit = false
+
+        // Even if only 16bit this will do, but we need to convert from 2-3 bytes to a single float
+        //  representing a single sample data point, from -1.0F to 1.0F
+        val sampleData: FloatBuffer = FloatBuffer.allocate(0)
+
+        fun updateSampleData(smplBytes: ByteArray, sm24Bytes: ByteArray?) {
+            // every 2 bytes in smplBytes is a point
+            // if sm24 != null then the byte at that index is the 3rd part of the sample
+            // Convert the 2-3 bytes into a Float somehow to make things easy for us
+            TODO("Not implemented!")
+        }
     }
 
     object SFSampleLink {
