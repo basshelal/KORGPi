@@ -4,6 +4,7 @@
 
 package com.github.basshelal.korgpi.extensions
 
+import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.EnumSet
 
@@ -90,3 +91,21 @@ inline fun FloatBuffer.fillWith(value: Float): FloatBuffer {
 }
 
 inline fun FloatBuffer.zero(): FloatBuffer = this.fillWith(0F)
+
+inline fun ByteBuffer.subBuffer(beginIndex: Int, endIndex: Int): ByteBuffer {
+    var from = beginIndex
+    var to = endIndex
+
+    if (from < 0) from = 0
+    if (from > this.capacity()) from = this.capacity()
+    if (to < 0) to = 0
+    if (to > this.capacity()) to = this.capacity()
+    if (from > to) from = to
+    val offset = from
+    val len = to - from
+
+    ByteArray(len).let {
+        this.get(it, offset, len)
+        return ByteBuffer.wrap(it)
+    }
+}

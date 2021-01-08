@@ -1,4 +1,4 @@
-@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE", "NOTHING_TO_INLINE")
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 
 package com.github.basshelal.korgpi.sf2
 
@@ -81,7 +81,7 @@ class SF2Soundbank(inputStream: InputStream) {
         }
     }
 
-    private inline fun readInfoChunk(riffReader: RIFFReader) {
+    private fun readInfoChunk(riffReader: RIFFReader) {
         riffReader.forEach { chunk ->
             when (chunk.format) {
                 "ifil" -> {
@@ -124,7 +124,7 @@ class SF2Soundbank(inputStream: InputStream) {
         // TODO: 05/01/2021 Verify all necessary was loaded, else throw an Exception
     }
 
-    private inline fun readSdtaChunk(riffReader: RIFFReader) {
+    private fun readSdtaChunk(riffReader: RIFFReader) {
         riffReader.forEach { chunk ->
             when (chunk.format) {
                 "smpl" -> {
@@ -161,7 +161,7 @@ class SF2Soundbank(inputStream: InputStream) {
         }
     }
 
-    private inline fun readPdtaChunk(riffReader: RIFFReader) {
+    private fun readPdtaChunk(riffReader: RIFFReader) {
         val presets = mutableListOf<SF2Instrument>()
         val presets_bagNdx = mutableListOf<Int>()
         val presets_splits_gen = mutableListOf<SF2InstrumentRegion?>()

@@ -19,8 +19,7 @@ class SF2Sample {
     var data: ModelByteBuffer? = null
     var data24: ModelByteBuffer? = null
 
-    val format: AudioFormat
-        get() = AudioFormat(sampleRate.F, 16, 1, true, false)
+    val format: AudioFormat = AudioFormat(sampleRate.F, 16, 1, true, false)
 
     override fun toString(): String {
         return "Sample: $name"

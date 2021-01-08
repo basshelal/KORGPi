@@ -2,6 +2,7 @@
 
 package sf2
 
+import com.github.basshelal.korgpi.log.logDAll
 import mustEqual
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -41,6 +42,17 @@ class SF2 {
 
         JSoundbank.samples.last().dataBuffer.capacity() mustEqual
                 KSoundbank.samples.last().data?.capacity()
+    }
+
+    @Test
+    fun `Read All Data`() {
+        KSoundbank.apply {
+            logDAll(
+                    "name:\n $name",
+                    "product:\n $product",
+                    "comments:\n $comments"
+            )
+        }
     }
 
 
