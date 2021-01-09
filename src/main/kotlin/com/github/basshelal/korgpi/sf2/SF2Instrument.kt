@@ -7,6 +7,7 @@ class SF2Instrument {
     var name: String = ""
     var preset: Int = 0
     var bank: Int = 0
+    var index: Int = 0
     var library: Long = 0L
     var genre: Long = 0L
     var morphology: Long = 0L

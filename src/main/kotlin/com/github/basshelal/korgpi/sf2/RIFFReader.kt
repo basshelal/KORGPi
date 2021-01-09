@@ -98,6 +98,37 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
         }
     }
 
+    // Read 8 bit unsigned integer from stream
+    fun readUByte(): Int {
+        val ch = read()
+        if (ch < 0) throw EOFException()
+        return ch
+    }
+
+    // Read 8 bit signed integer from stream
+    fun readByte(): Byte {
+        val ch = read()
+        if (ch < 0) throw EOFException()
+        return ch.B
+    }
+
+    // Read 16 bit unsigned integer from stream
+    fun readUShort(): Int {
+        val ch1 = read()
+        val ch2 = read()
+        if (ch1 < 0) throw EOFException()
+        if (ch2 < 0) throw EOFException()
+        return ch1 or (ch2 shl 8)
+    }
+
+    // Read 16 bit signed integer from stream
+    fun readShort(): Short {
+        val ch1 = read()
+        val ch2 = read()
+        if (ch1 < 0 || ch2 < 0) throw EOFException()
+        return (ch1 or (ch2 shl 8)).toShort()
+    }
+
     // Read 32 bit unsigned integer from stream
     fun readUInt(): Long {
         val ch1: Long = read().L
@@ -108,8 +139,18 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
         return ch1 + (ch2 shl 8) or (ch3 shl 16) or (ch4 shl 24)
     }
 
+    // Read 32 bit signed integer from stream
+    fun readInt(): Int {
+        val ch1 = read()
+        val ch2 = read()
+        val ch3 = read()
+        val ch4 = read()
+        if (ch1 < 0 || ch2 < 0 || ch3 < 0 || ch4 < 0) throw EOFException()
+        return ch1 + (ch2 shl 8) or (ch3 shl 16) or (ch4 shl 24)
+    }
+
     // Read ASCII chars from stream
-    fun readString(length: Int): String {
+    fun readString(length: Int = available): String {
         val buff: ByteArray
         try {
             buff = ByteArray(length)
@@ -121,31 +162,6 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
             if (it == 0.B) return String(buff, 0, index, Charsets.US_ASCII)
         }
         return String(buff, Charsets.US_ASCII)
-    }
-
-    // Read 8 bit signed integer from stream
-    fun readByte(): Byte {
-        val ch = read()
-        if (ch < 0) throw EOFException()
-        return ch.B
-    }
-
-    // Read 16 bit signed integer from stream
-    fun readShort(): Short {
-        val ch1 = read()
-        val ch2 = read()
-        if (ch1 < 0 || ch2 < 0) throw EOFException()
-        return (ch1 or (ch2 shl 8)).toShort()
-    }
-
-    // Read 32 bit signed integer from stream
-    fun readInt(): Int {
-        val ch1 = read()
-        val ch2 = read()
-        val ch3 = read()
-        val ch4 = read()
-        if (ch1 < 0 || ch2 < 0 || ch3 < 0 || ch4 < 0) throw EOFException()
-        return ch1 + (ch2 shl 8) or (ch3 shl 16) or (ch4 shl 24)
     }
 
     // Read 64 bit signed integer from stream
@@ -162,22 +178,6 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
                 ch5 < 0 || ch6 < 0 || ch7 < 0 || ch8 < 0) throw EOFException()
         return (ch1 or (ch2 shl 8) or (ch3 shl 16) or (ch4 shl 24)
                 or (ch5 shl 32) or (ch6 shl 40) or (ch7 shl 48) or (ch8 shl 56))
-    }
-
-    // Read 8 bit unsigned integer from stream
-    fun readUByte(): Int {
-        val ch = read()
-        if (ch < 0) throw EOFException()
-        return ch
-    }
-
-    // Read 16 bit unsigned integer from stream
-    fun readUShort(): Int {
-        val ch1 = read()
-        val ch2 = read()
-        if (ch1 < 0) throw EOFException()
-        if (ch2 < 0) throw EOFException()
-        return ch1 or (ch2 shl 8)
     }
 
     override fun read(): Int {

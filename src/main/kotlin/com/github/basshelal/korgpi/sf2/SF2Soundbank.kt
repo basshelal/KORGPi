@@ -89,35 +89,35 @@ class SF2Soundbank(inputStream: InputStream) {
                     this.minor = chunk.readUShort()
                 }
                 "isng" -> {
-                    this.targetEngine = chunk.readString(chunk.available)
+                    this.targetEngine = chunk.readString()
                 }
                 "INAM" -> {
-                    this.name = chunk.readString(chunk.available)
+                    this.name = chunk.readString()
                 }
                 "irom" -> {
-                    this.romName = chunk.readString(chunk.available)
+                    this.romName = chunk.readString()
                 }
                 "iver" -> {
                     this.romVersionMajor = chunk.readUShort()
                     this.romVersionMinor = chunk.readUShort()
                 }
                 "ICRD" -> {
-                    this.creationDate = chunk.readString(chunk.available)
+                    this.creationDate = chunk.readString()
                 }
                 "IENG" -> {
-                    this.engineers = chunk.readString(chunk.available)
+                    this.engineers = chunk.readString()
                 }
                 "IPRD" -> {
-                    this.product = chunk.readString(chunk.available)
+                    this.product = chunk.readString()
                 }
                 "ICOP" -> {
-                    this.copyright = chunk.readString(chunk.available)
+                    this.copyright = chunk.readString()
                 }
                 "ICMT" -> {
-                    this.comments = chunk.readString(chunk.available)
+                    this.comments = chunk.readString()
                 }
                 "ISFT" -> {
-                    this.tools = chunk.readString(chunk.available)
+                    this.tools = chunk.readString()
                 }
             }
         }
@@ -174,17 +174,22 @@ class SF2Soundbank(inputStream: InputStream) {
 
         riffReader.forEach { chunk: RIFFReader ->
             when (chunk.format) {
+                // Preset Headers
+                // Initialize presets
                 "phdr" -> {
-                    // Preset Headers
                     if (chunk.available % 38 != 0)
                         throw RIFFInvalidDataException("PHDR sub chunk is not a multiple of 38 bytes in length")
                     val count: Int = chunk.available / 38
+                    if (count < 2)
+                        throw RIFFInvalidDataException("PHDR sub chunk contains fewer than 2 records")
                     for (i in 0 until count) {
                         SF2Instrument().also { preset ->
                             preset.name = chunk.readString(20)
                             preset.preset = chunk.readUShort()
                             preset.bank = chunk.readUShort()
-                            presets_bagNdx.add(chunk.readUShort())
+                            val index = chunk.readUShort()
+                            presets_bagNdx.add(index)
+                            preset.index = index
                             preset.library = chunk.readUInt()
                             preset.genre = chunk.readUInt()
                             preset.morphology = chunk.readUInt()
@@ -196,20 +201,18 @@ class SF2Soundbank(inputStream: InputStream) {
                         }
                     }
                 }
+                // Preset Zones
                 "pbag" -> {
-                    // Preset Zones
                     if (chunk.available % 4 != 0)
                         throw RIFFInvalidDataException("PBAG sub chunk is not a multiple of 4 bytes in length")
                     var count: Int = chunk.available / 4
 
                     // Skip first record
-                    kotlin.run {
-                        val gencount = chunk.readUShort()
-                        val modcount = chunk.readUShort()
-                        while (presets_splits_gen.size < gencount) presets_splits_gen.add(null)
-                        while (presets_splits_mod.size < modcount) presets_splits_mod.add(null)
-                        count--
-                    }
+                    val _gencount = chunk.readUShort()
+                    val _modcount = chunk.readUShort()
+                    while (presets_splits_gen.size < _gencount) presets_splits_gen.add(null)
+                    while (presets_splits_mod.size < _modcount) presets_splits_mod.add(null)
+                    count--
 
                     if (presets_bagNdx.isEmpty()) throw RIFFInvalidDataException("RIFF Invalid Data")
 
