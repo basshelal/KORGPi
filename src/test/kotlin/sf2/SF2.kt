@@ -42,20 +42,17 @@ class SF2 {
         JSoundbank.instruments.size mustEqual KSoundbank.instruments.size
         JSoundbank.layers.size mustEqual KSoundbank.layers.size
 
-        JSoundbank.samples.first().dataBuffer.capacity() mustEqual
-                KSoundbank.samples.first().data?.capacity()
 
-        JSoundbank.samples.last().dataBuffer.capacity() mustEqual
-                KSoundbank.samples.last().data?.capacity()
+        KSoundbank.samples.size mustEqual 864
+        //  KSoundbank.instruments.size mustEqual 304
 
+        // Polyphone calls these Presets, we have 275 Polyphone Presets
 
         // KSoundbank.samples.forEach { logD("${it.name}\n") }
 
         val sample = KSoundbank.samples.find { it.name == "TR-808 Click" }
 
         require(sample != null)
-
-        logD(sample.data?.capacity())
 
         val array = sample.data?.array()!!
 
@@ -92,8 +89,8 @@ class SF2 {
         }
 
         logD(intArray.size)
-        logD(intArray.minOrNull())
         logD(intArray.maxOrNull())
+        logD(intArray.minOrNull())
 
 
         File("./ints").writeText(intArray.joinToString("\n"))

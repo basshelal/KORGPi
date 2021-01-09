@@ -4,6 +4,7 @@ package com.github.basshelal.korgpi.sf2
 
 import com.github.basshelal.korgpi.extensions.F
 import com.sun.media.sound.ModelByteBuffer
+import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import javax.sound.sampled.AudioFormat
 
@@ -17,7 +18,7 @@ class SF2Sample {
     var pitchCorrection: Byte = 0
     var sampleLink = 0
     var sampleType = 0
-    var data: ModelByteBuffer? = null
+    var data: ByteBuffer? = null
     var data24: ModelByteBuffer? = null
 
     val format: AudioFormat = AudioFormat(sampleRate.F, 16, 1, true, false)

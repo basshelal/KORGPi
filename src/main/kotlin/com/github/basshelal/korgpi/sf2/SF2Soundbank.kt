@@ -3,11 +3,14 @@
 package com.github.basshelal.korgpi.sf2
 
 import com.github.basshelal.korgpi.extensions.I
+import com.github.basshelal.korgpi.extensions.subBuffer
+import com.github.basshelal.korgpi.log.logD
 import com.sun.media.sound.ModelByteBuffer
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URL
+import java.nio.ByteBuffer
 
 // TODO: 31/12/2020 Reimplement this, probably into a java.nio.ByteBuffer
 typealias MByteBuffer = ModelByteBuffer
@@ -50,8 +53,8 @@ class SF2Soundbank(inputStream: InputStream) {
     var tools: String = ""
 
     // The Sample Data loaded from the SoundFont
-    var sampleData: MByteBuffer? = null
-    var sampleData24: MByteBuffer? = null
+    var sampleData: ByteBuffer? = null
+    var sampleData24: ByteBuffer? = null
 
     val instruments: MutableList<SF2Instrument> = mutableListOf()
     val layers: MutableList<SF2Layer> = mutableListOf()
@@ -85,39 +88,39 @@ class SF2Soundbank(inputStream: InputStream) {
         riffReader.forEach { chunk ->
             when (chunk.format) {
                 "ifil" -> {
-                    this.major = chunk.readUShort()
-                    this.minor = chunk.readUShort()
+                    this.major = chunk.uShort
+                    this.minor = chunk.uShort
                 }
                 "isng" -> {
-                    this.targetEngine = chunk.readString()
+                    this.targetEngine = chunk.string
                 }
                 "INAM" -> {
-                    this.name = chunk.readString()
+                    this.name = chunk.string
                 }
                 "irom" -> {
-                    this.romName = chunk.readString()
+                    this.romName = chunk.string
                 }
                 "iver" -> {
-                    this.romVersionMajor = chunk.readUShort()
-                    this.romVersionMinor = chunk.readUShort()
+                    this.romVersionMajor = chunk.uShort
+                    this.romVersionMinor = chunk.uShort
                 }
                 "ICRD" -> {
-                    this.creationDate = chunk.readString()
+                    this.creationDate = chunk.string
                 }
                 "IENG" -> {
-                    this.engineers = chunk.readString()
+                    this.engineers = chunk.string
                 }
                 "IPRD" -> {
-                    this.product = chunk.readString()
+                    this.product = chunk.string
                 }
                 "ICOP" -> {
-                    this.copyright = chunk.readString()
+                    this.copyright = chunk.string
                 }
                 "ICMT" -> {
-                    this.comments = chunk.readString()
+                    this.comments = chunk.string
                 }
                 "ISFT" -> {
-                    this.tools = chunk.readString()
+                    this.tools = chunk.string
                 }
             }
         }
@@ -140,7 +143,8 @@ class SF2Soundbank(inputStream: InputStream) {
                             read = avail
                         }
                     }
-                    this.sampleData = ModelByteBuffer(sampleData)
+                    this.sampleData = ByteBuffer.wrap(sampleData)
+                    logD("Sample Data size: ${this.sampleData?.capacity()}")
                 }
                 "sm24" -> {
                     val sampleData24 = ByteArray(chunk.available)
@@ -155,7 +159,7 @@ class SF2Soundbank(inputStream: InputStream) {
                             read = avail
                         }
                     }
-                    this.sampleData24 = ModelByteBuffer(sampleData24)
+                    this.sampleData24 = ByteBuffer.wrap(sampleData24)
                 }
             }
         }
@@ -344,25 +348,38 @@ class SF2Soundbank(inputStream: InputStream) {
                 }
                 "shdr" -> {
                     // Sample Headers
-                    if (chunk.available() % 46 != 0) throw RIFFInvalidDataException("RIFF Invalid Data")
-                    val count = chunk.available() / 46
+                    if (chunk.available % 46 != 0)
+                        throw RIFFInvalidDataException("SHDR sub chunk is not a multiple of 46 bytes in length")
+                    val count = chunk.available / 46
                     for (i in 0 until count) {
-                        val sample = SF2Sample(/*this*/)
-                        sample.name = chunk.readString(20)
-                        val start = chunk.readUInt()
-                        val end = chunk.readUInt()
-                        if (sampleData != null) sample.data = sampleData?.subbuffer(start * 2, end * 2, true)
-                        if (sampleData24 != null) sample.data24 = sampleData24?.subbuffer(start, end, true)
-                        sample.startLoop = chunk.readUInt() - start
-                        sample.endLoop = chunk.readUInt() - start
-                        if (sample.startLoop < 0) sample.startLoop = -1
-                        if (sample.endLoop < 0) sample.endLoop = -1
-                        sample.sampleRate = chunk.readUInt()
-                        sample.originalPitch = chunk.readUByte()
-                        sample.pitchCorrection = chunk.readByte()
-                        sample.sampleLink = chunk.readUShort()
-                        sample.sampleType = chunk.readUShort()
-                        if (i != count - 1) this.samples.add(sample)
+                        val isNotLast = i != count - 1
+                        SF2Sample().also { sample ->
+                            sample.name = chunk.readString(20)
+                            val start = chunk.uInt
+                            val end = chunk.uInt
+                            logD("Name: ${sample.name} Start: $start, End: $end Size: ${end - start}")
+                            this.sampleData?.also {
+                                if (isNotLast)
+                                    sample.data = it.subBuffer(start.I * 2, end.I * 2)
+                                // sample.data = it.subBuffer(start.I * 2, (end.I * 2) + 46)
+                                // + 46 is optional because spec requires samples have 46 0 bytes at the end, we
+                                // don't need this but may find it useful later
+                            }
+                            this.sampleData24?.also {
+                                // TODO: 09/01/2021
+                                //  sample.data24 = it.subbuffer(start, end, true)
+                            }
+                            sample.startLoop = chunk.uInt - start
+                            sample.endLoop = chunk.uInt - start
+                            if (sample.startLoop < 0) sample.startLoop = -1
+                            if (sample.endLoop < 0) sample.endLoop = -1
+                            sample.sampleRate = chunk.uInt
+                            sample.originalPitch = chunk.uByte
+                            sample.pitchCorrection = chunk.byte
+                            sample.sampleLink = chunk.uShort
+                            sample.sampleType = chunk.uShort
+                            if (isNotLast) this.samples.add(sample)
+                        }
                     }
                 }
             }
@@ -411,6 +428,7 @@ class SF2Soundbank(inputStream: InputStream) {
             }
         }
 
+        // TODO: 09/01/2021 Verify all necessary was loaded, else throw an Exception
     }
 
     // TODO: 02/01/2021 Missing SF2 Writing and editing functions

@@ -92,6 +92,8 @@ inline fun FloatBuffer.fillWith(value: Float): FloatBuffer {
 
 inline fun FloatBuffer.zero(): FloatBuffer = this.fillWith(0F)
 
+inline fun ByteArray.toByteBuffer(): ByteBuffer = ByteBuffer.wrap(this)
+
 inline fun ByteBuffer.subBuffer(beginIndex: Int, endIndex: Int): ByteBuffer {
     var from = beginIndex
     var to = endIndex
@@ -101,11 +103,6 @@ inline fun ByteBuffer.subBuffer(beginIndex: Int, endIndex: Int): ByteBuffer {
     if (to < 0) to = 0
     if (to > this.capacity()) to = this.capacity()
     if (from > to) from = to
-    val offset = from
-    val len = to - from
 
-    ByteArray(len).let {
-        this.get(it, offset, len)
-        return ByteBuffer.wrap(it)
-    }
+    return ByteArray(to - from) { this.get(it + from) }.toByteBuffer()
 }

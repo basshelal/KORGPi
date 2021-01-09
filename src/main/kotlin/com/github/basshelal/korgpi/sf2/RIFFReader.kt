@@ -180,6 +180,15 @@ class RIFFReader(val stream: InputStream) : InputStream(), Iterable<RIFFReader> 
                 or (ch5 shl 32) or (ch6 shl 40) or (ch7 shl 48) or (ch8 shl 56))
     }
 
+    inline val uByte: Int get() = readUByte()
+    inline val byte: Byte get() = readByte()
+    inline val uShort: Int get() = readUShort()
+    inline val short: Short get() = readShort()
+    inline val uInt: Long get() = readUInt()
+    inline val int: Int get() = readInt()
+    inline val string: String get() = readString()
+    inline val long: Long get() = readLong()
+
     override fun read(): Int {
         if (avail == 0L) return -1
         val byte = stream.read()
