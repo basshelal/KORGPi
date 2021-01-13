@@ -1,5 +1,6 @@
 package com.github.basshelal.korgpi.app
 
+import com.github.basshelal.korgpi.APP_NAME
 import com.github.basshelal.korgpi.JackMixer
 import com.github.basshelal.korgpi.audio.Synth
 import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
@@ -22,10 +23,10 @@ class App : Application() {
 
     override fun start(primaryStage: Stage) {
         primaryStage.apply {
-            title = "KorgPi"
+            title = APP_NAME
             dimensions = 250 to 250
             scene = Scene(StackPane().also { stackPane: StackPane ->
-                stackPane.add(text("KorgPi").also { it.font = Font.font(45.0) })
+                stackPane.add(text(APP_NAME).also { it.font = Font.font(45.0) })
                 stackPane.background = Background(BackgroundFill(Color.web("#424242"), CornerRadii(1.0),
                         Insets(0.0, 0.0, 0.0, 0.0)))
             })

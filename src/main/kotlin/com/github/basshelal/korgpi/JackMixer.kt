@@ -23,7 +23,7 @@ object JackMixer {
             jackInstance = Jack.getInstance()
         }
         if (!this::jackClient.isInitialized) {
-            jackClient = jackInstance.openClient("KorgPi")
+            jackClient = jackInstance.openClient(APP_NAME)
             sampleRate = jackClient.sampleRate
         }
     }
@@ -40,7 +40,7 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun getMidiInPort(name: String): MidiInPort {
-            return _inPorts.find { it.jackPort.shortName === name } ?: try {
+            return _inPorts.find { it.jackPort.shortName == name } ?: try {
                 val jackPort: JackPort = jackClient.registerPort(name, JackPortType.MIDI, JackPortFlags.JackPortIsInput)
                 val midiInPort = MidiInPort(jackPort)
                 _inPorts.add(midiInPort)
@@ -54,7 +54,7 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeMidiInPort(name: String) {
-            val found: MidiInPort? = _inPorts.find { it.jackPort.shortName === name }
+            val found: MidiInPort? = _inPorts.find { it.jackPort.shortName == name }
             if (found !== null) {
                 _inPorts.remove(found)
                 try {
@@ -76,7 +76,7 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun getAudioAudioPort(name: String): AudioOutPort {
-            return _outPorts.find { it.jackPort.shortName === name } ?: try {
+            return _outPorts.find { it.jackPort.shortName == name } ?: try {
                 val jackPort: JackPort = jackClient.registerPort(name, JackPortType.AUDIO, JackPortFlags.JackPortIsOutput)
                 val audioOutPort = AudioOutPort(jackPort)
                 _outPorts.add(audioOutPort)
@@ -90,7 +90,7 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeAudioOutPort(name: String) {
-            val found: AudioOutPort? = _outPorts.find { it.jackPort.shortName === name }
+            val found: AudioOutPort? = _outPorts.find { it.jackPort.shortName == name }
             if (found !== null) {
                 _outPorts.remove(found)
                 try {
