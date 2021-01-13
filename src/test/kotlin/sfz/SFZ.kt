@@ -4,10 +4,8 @@ import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.sfz.SFZFileReader
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-@DisplayName("SoundFont Tests")
 class SFZ {
 
     companion object {

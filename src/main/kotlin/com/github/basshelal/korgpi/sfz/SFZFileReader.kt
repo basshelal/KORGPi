@@ -24,6 +24,11 @@ class SFZFileReader(val filePath: String) {
                 }
                 val headerName = line.removeSurrounding(prefix = "<", suffix = ">")
                 currentHeader = SFZHeader.from(headerName)
+
+                // TODO: 13/01/2021 What if the line contains more than just one thing such as header or opcode
+                //  a line can technically contain more than one thing
+                
+
             } else {
                 // Some opcode
                 currentHeader?.also {
