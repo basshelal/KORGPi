@@ -92,6 +92,39 @@ inline fun FloatBuffer.fillWith(value: Float): FloatBuffer {
 
 inline fun FloatBuffer.zero(): FloatBuffer = this.fillWith(0F)
 
+inline fun FloatBuffer.toArray(): FloatArray = FloatArray(this.capacity()) { this[it] }
+
+inline operator fun ByteBuffer.set(index: Int, value: Byte) {
+    this.put(index, value)
+}
+
+inline fun ByteBuffer.forEach(func: (value: Byte) -> Unit) {
+    for (i: Int in (0 until capacity())) {
+        func(this[i])
+    }
+}
+
+inline fun ByteBuffer.forEachIndexed(func: (value: Byte, index: Int) -> Unit) {
+    for (i: Int in (0 until capacity())) {
+        func(this[i], i)
+    }
+}
+
+inline fun ByteBuffer.updateEach(func: (value: Byte, index: Int) -> Byte) {
+    for (i: Int in (0 until capacity())) {
+        this[i] = func(this[i], i)
+    }
+}
+
+inline fun ByteBuffer.fillWith(value: Byte): ByteBuffer {
+    this.forEachIndexed { _, index -> this[index] = value }
+    return this
+}
+
+inline fun ByteBuffer.toArray(): ByteArray = ByteArray(this.capacity()) { this[it] }
+
+inline fun ByteBuffer.zero(): ByteBuffer = this.fillWith(0)
+
 inline fun ByteArray.toByteBuffer(): ByteBuffer = ByteBuffer.wrap(this)
 
 inline fun ByteBuffer.subBuffer(beginIndex: Int, endIndex: Int): ByteBuffer {
