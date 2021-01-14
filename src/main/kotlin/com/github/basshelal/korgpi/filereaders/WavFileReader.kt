@@ -1,6 +1,7 @@
 package com.github.basshelal.korgpi.filereaders
 
 import com.github.basshelal.korgpi.extensions.I
+import com.github.basshelal.korgpi.extensions.toArray
 import com.github.basshelal.korgpi.log.logD
 import java.io.File
 import java.nio.ByteBuffer
@@ -41,8 +42,9 @@ class WavFileReader(filePath: String) {
                 }
                 while (buffer.hasRemaining()) buffer.put(0)
                 buffer.position(0)
+                logD(buffer.toArray().joinToString())
                 val int = buffer.int
-                logD(int)
+                //  logD(int)
                 //  bytesToConvert.fill(0)
                 //     logD(int)
                 int

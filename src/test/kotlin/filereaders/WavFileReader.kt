@@ -22,7 +22,7 @@ class WavFileReader {
 
     @Test
     fun test() {
-        val reader = WavFileReader("res/Alesis-Fusion-Viola-C5.wav")
+        val reader = WavFileReader("res/test.wav")
 
         val byteArray = reader.byteArray
         val floatArray = reader.floatArray
@@ -30,8 +30,12 @@ class WavFileReader {
         logD(byteArray.size)
         logD(floatArray.size)
         logD(reader.sampleCount)
-        logD(reader.format.isBigEndian)
         logD(reader.format)
+
+        logD(byteArray.joinToString("\n"))
+        logD("=====================================")
+        logD(floatArray.joinToString("\n"))
+
 
         //   floatArray.forEach { logD(it) }
     }
