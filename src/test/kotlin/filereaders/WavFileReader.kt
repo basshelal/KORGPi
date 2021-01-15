@@ -26,6 +26,7 @@ class WavFileReader {
 
         val byteArray = reader.byteArray
         val floatArray = reader.floatArray
+        val data = reader.data
 
         logD(byteArray.size)
         logD(floatArray.size)
@@ -35,6 +36,8 @@ class WavFileReader {
         logD(byteArray.joinToString("\n"))
         logD("=====================================")
         logD(floatArray.joinToString("\n"))
+        logD("=====================================")
+        data.forEachIndexed { index, it -> logD("Channel $index:\n\t${it.joinToString("\n\t")}") }
 
 
         //   floatArray.forEach { logD(it) }
