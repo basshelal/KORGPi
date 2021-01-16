@@ -1,6 +1,7 @@
 package filereaders
 
 import com.github.basshelal.korgpi.extensions.I
+import com.github.basshelal.korgpi.filereaders.FourBytes
 import com.github.basshelal.korgpi.filereaders.WavFileReader
 import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.log.logE
@@ -53,6 +54,22 @@ class WavFileReader {
         logE(0x7f7f8080)
 
         //   floatArray.forEach { logD(it) }
+    }
+
+    @Test
+    fun `FourBytes test`() {
+        val buffer = FourBytes(isBigEndian = false)
+
+        buffer.put(Byte.MAX_VALUE).put(Byte.MAX_VALUE).put(Byte.MAX_VALUE).put(Byte.MAX_VALUE)
+
+        logD(buffer.int)
+        logD(buffer.float)
+
+        buffer.clear()
+        buffer.put(0).put(0).put(0).put(0)
+
+        logD(buffer.int)
+        logD(buffer.float)
     }
 
 }
