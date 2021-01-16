@@ -1,8 +1,11 @@
 package com.github.basshelal.korgpi.filereaders
 
+import com.github.basshelal.korgpi.MinMax
 import com.github.basshelal.korgpi.extensions.I
+import com.github.basshelal.korgpi.extensions.string
 import com.github.basshelal.korgpi.extensions.toArray
 import com.github.basshelal.korgpi.log.logD
+import com.github.basshelal.korgpi.log.logE
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -16,6 +19,36 @@ class WavFileReader(filePath: String) {
     val format: AudioFormat = audioInputStream.format
 
     inline val sampleSizeInBytes: Int get() = format.sampleSizeInBits / 8
+
+    val intRange: MinMax<Int>
+    val floatRange: MinMax<Float>
+
+    init {
+        val buffer = FourBytes()
+        for (byteIndex in 0 until sampleSizeInBytes) {
+            buffer[byteIndex] = Byte.MIN_VALUE
+        }
+        logE(buffer)
+        val minInt = buffer.int(format.isBigEndian)
+        logE(buffer.buffer.string())
+        val minFloat = buffer.float(format.isBigEndian)
+        logE(buffer.buffer.string())
+
+        buffer.clear()
+        for (byteIndex in 0 until sampleSizeInBytes) {
+            buffer[byteIndex] = Byte.MAX_VALUE
+        }
+        logE(buffer)
+        val maxInt = buffer.int(format.isBigEndian)
+        logE(buffer.buffer.string())
+        val maxFloat = buffer.float(format.isBigEndian)
+        logE(buffer.buffer.string())
+
+        this.intRange = MinMax(minInt, maxInt)
+        this.floatRange = MinMax(minFloat, maxFloat)
+
+    }
+
 
     val byteArray = ByteArray(sampleCount.I * sampleSizeInBytes * format.channels).also {
         audioInputStream.read(it, 0, it.size)
@@ -58,16 +91,16 @@ class WavFileReader(filePath: String) {
             var audioBytesIndex = 0
 
             val list = List(format.channels) { FloatArray(sampleCount.I) }
-            val byteBuffer = FourBytes()
+            val buffer = FourBytes()
 
             for (sample in 0 until sampleCount.I) {
                 for (channel in 0 until format.channels) {
-                    byteBuffer.clear()
+                    buffer.clear()
                     for (byteIndex in 0 until sampleSizeInBytes) {
-                        byteBuffer[byteIndex] = audioBytes[audioBytesIndex]
+                        buffer[byteIndex] = audioBytes[audioBytesIndex]
                         audioBytesIndex++
                     }
-                    list[channel][sample] = byteBuffer.float(format.isBigEndian)
+                    list[channel][sample] = buffer.float(format.isBigEndian)
                 }
             }
             // TODO: 15/01/2021 Not yet range normalized to be from -1.0F to 1.0F
@@ -84,6 +117,8 @@ data class FourBytes(private var _0: Byte = 0,
     private val byteBuffer = ByteBuffer.allocateDirect(4)
 
     fun toArray(): ByteArray = byteArrayOf(_0, _1, _2, _3)
+
+    val buffer: ByteBuffer = byteBuffer.asReadOnlyBuffer()
 
     operator fun set(index: Int, value: Byte) {
         require(index in 0..3) { "Index must be between 0 and 3 inclusive, provided $index" }

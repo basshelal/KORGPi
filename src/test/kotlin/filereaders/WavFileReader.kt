@@ -1,7 +1,9 @@
 package filereaders
 
+import com.github.basshelal.korgpi.extensions.I
 import com.github.basshelal.korgpi.filereaders.WavFileReader
 import com.github.basshelal.korgpi.log.logD
+import com.github.basshelal.korgpi.log.logE
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -38,7 +40,17 @@ class WavFileReader {
         logD(floatArray.joinToString("\n"))
         logD("=====================================")
         data.forEachIndexed { index, it -> logD("Channel $index:\n\t${it.joinToString("\n\t")}") }
+        logD("=====================================")
+        logD(reader.floatRange)
+        logD(reader.intRange)
 
+        // 80808080 to 7f7f8080
+
+        logE(Float.fromBits(0x80808080.toInt()))
+        logE(Float.fromBits(0x7f7f8080))
+
+        logE(0x80808080.I)
+        logE(0x7f7f8080)
 
         //   floatArray.forEach { logD(it) }
     }

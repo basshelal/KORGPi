@@ -94,6 +94,14 @@ inline fun FloatBuffer.zero(): FloatBuffer = this.fillWith(0F)
 
 inline fun FloatBuffer.toArray(): FloatArray = FloatArray(this.capacity()) { this[it] }
 
+inline fun FloatBuffer.string(): String {
+    return StringBuilder().also { s ->
+        s.append("[")
+        this.forEach { s.append("$it ") }
+        s.append("]")
+    }.toString()
+}
+
 inline operator fun ByteBuffer.set(index: Int, value: Byte) {
     this.put(index, value)
 }
@@ -124,6 +132,14 @@ inline fun ByteBuffer.fillWith(value: Byte): ByteBuffer {
 inline fun ByteBuffer.toArray(): ByteArray = ByteArray(this.capacity()) { this[it] }
 
 inline fun ByteBuffer.zero(): ByteBuffer = this.fillWith(0)
+
+inline fun ByteBuffer.string(): String {
+    return StringBuilder().also { s ->
+        s.append("[")
+        this.forEach { s.append("$it ") }
+        s.append("]")
+    }.toString()
+}
 
 inline fun ByteArray.toByteBuffer(): ByteBuffer = ByteBuffer.wrap(this)
 
