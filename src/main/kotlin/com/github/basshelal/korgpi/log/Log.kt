@@ -28,6 +28,8 @@ object Log {
 
 inline fun logD(message: Any? = "") = Log.d(message)
 
+inline fun logD(vararg messages: Any? = emptyArray()) = Log.d(messages.joinToString(" "))
+
 inline fun logDAll(vararg messages: Any?) = messages.forEach { Log.d(it) }
 
 inline fun logE(message: Any? = "") = Log.e(message)

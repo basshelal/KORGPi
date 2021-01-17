@@ -2,10 +2,6 @@ package com.github.basshelal.korgpi.filereaders
 
 import com.github.basshelal.korgpi.MinMax
 import com.github.basshelal.korgpi.extensions.I
-import com.github.basshelal.korgpi.extensions.string
-import com.github.basshelal.korgpi.extensions.toArray
-import com.github.basshelal.korgpi.log.logD
-import com.github.basshelal.korgpi.log.logE
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -19,30 +15,27 @@ class WavFileReader(filePath: String) {
     val format: AudioFormat = audioInputStream.format
 
     inline val sampleSizeInBytes: Int get() = format.sampleSizeInBits / 8
+    inline val channels: Int get() = format.channels
+    inline val sizeBytes: Long get() = sampleCount * sampleSizeInBytes * channels
+    inline val isBigEndian: Boolean get() = format.isBigEndian
 
     val intRange: MinMax<Int>
     val floatRange: MinMax<Float>
 
     init {
-        val buffer = FourBytes(format.isBigEndian)
+        val buffer = FourBytes(isBigEndian)
         for (byteIndex in 0 until sampleSizeInBytes) {
             buffer.put(Byte.MIN_VALUE)
         }
-        logE(buffer)
         val minInt = buffer.int
-        logE(buffer.buffer.string())
         val minFloat = buffer.float
-        logE(buffer.buffer.string())
 
         buffer.clear()
         for (byteIndex in 0 until sampleSizeInBytes) {
-            buffer[byteIndex] = Byte.MAX_VALUE
+            buffer.put(Byte.MAX_VALUE)
         }
-        logE(buffer)
         val maxInt = buffer.int
-        logE(buffer.buffer.string())
         val maxFloat = buffer.float
-        logE(buffer.buffer.string())
 
         this.intRange = MinMax(minInt, maxInt)
         this.floatRange = MinMax(minFloat, maxFloat)
@@ -50,15 +43,17 @@ class WavFileReader(filePath: String) {
     }
 
 
-    val byteArray = ByteArray(sampleCount.I * sampleSizeInBytes * format.channels).also {
-        audioInputStream.read(it, 0, it.size)
-        audioInputStream.close()
+    val byteArray: ByteArray = audioInputStream.let { stream ->
+        val bytes = stream.readAllBytes()
+        require(bytes.size == this.sizeBytes.I)
+        stream.close()
+        return@let bytes
     }
 
     val sampleCount: Long
         get() {
             val total: Long = (audioInputStream.frameLength * format.frameSize * 8) / format.sampleSizeInBits
-            return total / format.channels
+            return total / channels
         }
 
     // Range from -1.0F to 1.0F
@@ -75,7 +70,6 @@ class WavFileReader(filePath: String) {
                 }
                 while (buffer.hasRemaining()) buffer.put(0)
                 buffer.position(0)
-                logD(buffer.toArray().joinToString())
                 val int = buffer.int
                 //  logD(int)
                 //  bytesToConvert.fill(0)
@@ -85,12 +79,12 @@ class WavFileReader(filePath: String) {
         }
 
 
-    val data: List<FloatArray>
+    val data: List<IntArray>
         get() {
             val audioBytes = byteArray
             var audioBytesIndex = 0
 
-            val list = List(format.channels) { FloatArray(sampleCount.I) }
+            val list = List(format.channels) { IntArray(sampleCount.I) }
             val buffer = FourBytes(format.isBigEndian)
 
             for (sample in 0 until sampleCount.I) {
@@ -100,12 +94,25 @@ class WavFileReader(filePath: String) {
                         buffer[byteIndex] = audioBytes[audioBytesIndex]
                         audioBytesIndex++
                     }
-                    list[channel][sample] = buffer.float
+                    list[channel][sample] = buffer.int
                 }
             }
             // TODO: 15/01/2021 Not yet range normalized to be from -1.0F to 1.0F
             return list
         }
+
+
+    fun readSample(index: Int): Long {
+        var value: Long = 0
+        for (b in 0 until sampleSizeInBytes) {
+            var v: Int = byteArray[index].I
+            if (b < sampleSizeInBytes - 1 || sampleSizeInBytes == 1) {
+                v = v and 0xFF
+            }
+            value += (v shl (b * 8)).toLong()
+        }
+        return value
+    }
 
 }
 
