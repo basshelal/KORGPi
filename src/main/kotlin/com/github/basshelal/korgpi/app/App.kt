@@ -1,11 +1,11 @@
 package com.github.basshelal.korgpi.app
 
 import com.github.basshelal.korgpi.APP_NAME
-import com.github.basshelal.korgpi.JackMixer
 import com.github.basshelal.korgpi.audio.Synth
 import com.github.basshelal.korgpi.extensions.addOnSystemShutdownCallback
 import com.github.basshelal.korgpi.extensions.dimensions
 import com.github.basshelal.korgpi.log.logD
+import com.github.basshelal.korgpi.mixers.JackMixer
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene

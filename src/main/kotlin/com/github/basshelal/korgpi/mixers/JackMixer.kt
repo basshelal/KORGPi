@@ -1,5 +1,6 @@
-package com.github.basshelal.korgpi
+package com.github.basshelal.korgpi.mixers
 
+import com.github.basshelal.korgpi.APP_NAME
 import com.github.basshelal.korgpi.audio.AudioOutPort
 import com.github.basshelal.korgpi.extensions.openClient
 import com.github.basshelal.korgpi.log.logE

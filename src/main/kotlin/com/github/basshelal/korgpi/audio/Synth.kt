@@ -1,6 +1,5 @@
 package com.github.basshelal.korgpi.audio
 
-import com.github.basshelal.korgpi.JackMixer
 import com.github.basshelal.korgpi.Key
 import com.github.basshelal.korgpi.Notes
 import com.github.basshelal.korgpi.RealTimeCritical
@@ -14,6 +13,7 @@ import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.midi.MidiInPort
 import com.github.basshelal.korgpi.midi.MidiMessage
 import com.github.basshelal.korgpi.midi.MidiReceiver
+import com.github.basshelal.korgpi.mixers.JackMixer
 import java.nio.FloatBuffer
 import kotlin.math.sin
 
