@@ -1,10 +1,10 @@
 package com.github.basshelal.korgpi.mixers
 
 import com.github.basshelal.korgpi.APP_NAME
-import com.github.basshelal.korgpi.audio.AudioOutPort
+import com.github.basshelal.korgpi.audio.JackAudioOutPort
 import com.github.basshelal.korgpi.extensions.openClient
 import com.github.basshelal.korgpi.log.logE
-import com.github.basshelal.korgpi.midi.MidiInPort
+import com.github.basshelal.korgpi.midi.JackMidiInPort
 import org.jaudiolibs.jnajack.Jack
 import org.jaudiolibs.jnajack.JackClient
 import org.jaudiolibs.jnajack.JackException
@@ -36,14 +36,14 @@ object JackMixer {
 
     object Midi {
 
-        private val _inPorts = mutableListOf<MidiInPort>()
-        val inPorts: List<MidiInPort> get() = _inPorts.toList()
+        private val _inPorts = mutableListOf<JackMidiInPort>()
+        val inPorts: List<JackMidiInPort> get() = _inPorts.toList()
 
         @Throws(JackException::class)
-        fun getMidiInPort(name: String): MidiInPort {
+        fun getMidiInPort(name: String): JackMidiInPort {
             return _inPorts.find { it.jackPort.shortName == name } ?: try {
                 val jackPort: JackPort = jackClient.registerPort(name, JackPortType.MIDI, JackPortFlags.JackPortIsInput)
-                val midiInPort = MidiInPort(jackPort)
+                val midiInPort = JackMidiInPort(jackPort)
                 _inPorts.add(midiInPort)
                 return midiInPort
             } catch (je: JackException) {
@@ -55,7 +55,7 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeMidiInPort(name: String) {
-            val found: MidiInPort? = _inPorts.find { it.jackPort.shortName == name }
+            val found: JackMidiInPort? = _inPorts.find { it.jackPort.shortName == name }
             if (found !== null) {
                 _inPorts.remove(found)
                 try {
@@ -72,14 +72,14 @@ object JackMixer {
 
     object Audio {
 
-        private val _outPorts = mutableListOf<AudioOutPort>()
-        val outPorts: List<AudioOutPort> = _outPorts.toList()
+        private val _outPorts = mutableListOf<JackAudioOutPort>()
+        val outPorts: List<JackAudioOutPort> = _outPorts.toList()
 
         @Throws(JackException::class)
-        fun getAudioAudioPort(name: String): AudioOutPort {
+        fun getAudioAudioPort(name: String): JackAudioOutPort {
             return _outPorts.find { it.jackPort.shortName == name } ?: try {
                 val jackPort: JackPort = jackClient.registerPort(name, JackPortType.AUDIO, JackPortFlags.JackPortIsOutput)
-                val audioOutPort = AudioOutPort(jackPort)
+                val audioOutPort = JackAudioOutPort(jackPort)
                 _outPorts.add(audioOutPort)
                 return audioOutPort
             } catch (je: JackException) {
@@ -91,7 +91,7 @@ object JackMixer {
 
         @Throws(JackException::class)
         fun removeAudioOutPort(name: String) {
-            val found: AudioOutPort? = _outPorts.find { it.jackPort.shortName == name }
+            val found: JackAudioOutPort? = _outPorts.find { it.jackPort.shortName == name }
             if (found !== null) {
                 _outPorts.remove(found)
                 try {

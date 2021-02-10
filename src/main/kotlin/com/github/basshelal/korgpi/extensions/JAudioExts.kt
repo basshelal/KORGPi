@@ -29,7 +29,7 @@ inline val Mixer.details: String
     }
 
 inline val Line.mixer: Mixer?
-    get() = JavaMixer.allJMixers().find { this in it.allLines() }
+    get() = JavaMixer.jMixers.find { this in it.allLines() }
 
 inline val DataLine.details: String
     get() = (lineInfo as DataLine.Info).let {

@@ -63,6 +63,10 @@ inline fun <reified E : Enum<E>> EnumSet(): EnumSet<E> = EnumSet.noneOf(E::class
 
 inline fun <reified E : Enum<E>> EnumSet(e: E): EnumSet<E> = EnumSet.of(e)
 
+inline fun FloatBuffer(capacity: Int): FloatBuffer = FloatBuffer.allocate(capacity)
+
+inline fun FloatBuffer(array: FloatArray): FloatBuffer = FloatBuffer.wrap(array)
+
 inline operator fun FloatBuffer.set(index: Int, value: Float) {
     this.put(index, value)
 }
@@ -101,6 +105,10 @@ inline fun FloatBuffer.string(): String {
         s.append("]")
     }.toString()
 }
+
+inline fun ByteBuffer(capacity: Int): ByteBuffer = ByteBuffer.allocate(capacity)
+
+inline fun ByteBuffer(array: ByteArray): ByteBuffer = ByteBuffer.wrap(array)
 
 inline operator fun ByteBuffer.set(index: Int, value: Byte) {
     this.put(index, value)

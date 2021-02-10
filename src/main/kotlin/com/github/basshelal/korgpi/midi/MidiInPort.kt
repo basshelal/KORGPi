@@ -7,7 +7,7 @@ import org.jaudiolibs.jnajack.JackException
 import org.jaudiolibs.jnajack.JackMidi
 import org.jaudiolibs.jnajack.JackPort
 
-class MidiInPort(val jackPort: JackPort) {
+class JackMidiInPort(val jackPort: JackPort) {
 
     private val event: JackMidi.Event = JackMidi.Event()
     private val midiMessage: MidiMessage = MidiMessage()

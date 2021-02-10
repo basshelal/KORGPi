@@ -1,15 +1,17 @@
 package com.github.basshelal.korgpi.audio
 
 import com.github.basshelal.korgpi.RealTimeCritical
+import com.github.basshelal.korgpi.extensions.FloatBuffer
 import com.github.basshelal.korgpi.log.Timer
+import com.github.basshelal.korgpi.utils.JLine
+import com.github.basshelal.korgpi.utils.JLineInfo
+import com.github.basshelal.korgpi.utils.JMixer
+import com.github.basshelal.korgpi.utils.JMixerInfo
 import java.lang.Thread.MAX_PRIORITY
+import java.nio.FloatBuffer
 import javax.sound.sampled.SourceDataLine
 import javax.sound.sampled.TargetDataLine
 
-typealias JMixer = javax.sound.sampled.Mixer
-typealias JMixerInfo = javax.sound.sampled.Mixer.Info
-typealias JLine = javax.sound.sampled.Line
-typealias JLineInfo = javax.sound.sampled.Line.Info
 
 class JAudioDevice(val jMixer: JMixer) {
 
@@ -61,11 +63,20 @@ abstract class AudioLine<T : JLine>(val jLine: T)
  * An [AudioLine] that can be written to from the application, from the application's point of view this is an output
  * for the audio data.
  */
-class WritableLine(val sdLine: SourceDataLine) : AudioLine<SourceDataLine>(sdLine) {
+class WritableLine(sdLine: SourceDataLine) : AudioLine<SourceDataLine>(sdLine) {
+
+    // TODO: 10/02/2021 What is buffer?? Initialize it and set it
+    val buffer: FloatBuffer = FloatBuffer(0)
+
+    init {
+
+        jLine.bufferSize // buffer size bytes, we use floats so we need to convert!
+
+    }
 
 }
 
-class ReadableLine(val tdLine: TargetDataLine) : AudioLine<TargetDataLine>(tdLine) {
+class ReadableLine(tdLine: TargetDataLine) : AudioLine<TargetDataLine>(tdLine) {
 
 }
 

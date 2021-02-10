@@ -10,14 +10,14 @@ import com.github.basshelal.korgpi.extensions.convertScale
 import com.github.basshelal.korgpi.extensions.updateEach
 import com.github.basshelal.korgpi.extensions.zero
 import com.github.basshelal.korgpi.log.logD
-import com.github.basshelal.korgpi.midi.MidiInPort
+import com.github.basshelal.korgpi.midi.JackMidiInPort
 import com.github.basshelal.korgpi.midi.MidiMessage
 import com.github.basshelal.korgpi.midi.MidiReceiver
 import com.github.basshelal.korgpi.mixers.JackMixer
 import java.nio.FloatBuffer
 import kotlin.math.sin
 
-class Synth(midiInPort: MidiInPort, audioOutPort: AudioOutPort)
+class Synth(jackMidiInPort: JackMidiInPort, jackAudioOutPort: JackAudioOutPort)
     : MidiReceiver, AudioProcessor {
 
     private val voices: List<SynthVoice>
@@ -29,8 +29,8 @@ class Synth(midiInPort: MidiInPort, audioOutPort: AudioOutPort)
     init {
         val sampleRate = JackMixer.sampleRate.D
         val bufferSize = JackMixer.jackClient.bufferSize
-        midiInPort.receivers.add(this)
-        audioOutPort.audioProcessors.add(this)
+        jackMidiInPort.receivers.add(this)
+        jackAudioOutPort.audioProcessors.add(this)
         voices = List(MidiMessage.MAX_NOTES) {
             SynthVoice(sampleRate, bufferSize)
         }

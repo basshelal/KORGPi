@@ -4,13 +4,30 @@ import com.github.basshelal.korgpi.RealTimeCritical
 import org.jaudiolibs.jnajack.JackPort
 import java.nio.FloatBuffer
 
-class AudioOutPort(val jackPort: JackPort) {
-
-    val audioProcessors: MutableList<AudioProcessor> = mutableListOf()
+abstract class AudioOutPort {
+    abstract val audioProcessors: MutableList<AudioProcessor>
 
     @RealTimeCritical
-    fun process() {
+    abstract fun process()
+}
+
+class JackAudioOutPort(val jackPort: JackPort) : AudioOutPort() {
+
+    override val audioProcessors: MutableList<AudioProcessor> = mutableListOf()
+
+    @RealTimeCritical
+    override fun process() {
         audioProcessors.forEach { it.processAudio(jackPort.floatBuffer) }
+    }
+}
+
+class JavaAudioOutPort(val writableLine: WritableLine) : AudioOutPort() {
+
+    override val audioProcessors: MutableList<AudioProcessor> = mutableListOf()
+
+    @RealTimeCritical
+    override fun process() {
+        audioProcessors.forEach { it.processAudio(writableLine.buffer) }
     }
 }
 
