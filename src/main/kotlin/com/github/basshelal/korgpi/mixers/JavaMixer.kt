@@ -1,6 +1,8 @@
 package com.github.basshelal.korgpi.mixers
 
 import com.github.basshelal.korgpi.audio.JAudioDevice
+import com.github.basshelal.korgpi.audio.ReadableLine
+import com.github.basshelal.korgpi.audio.WritableLine
 import com.github.basshelal.korgpi.extensions.allLines
 import com.github.basshelal.korgpi.extensions.simpleClassName
 import com.github.basshelal.korgpi.utils.JLine
@@ -22,15 +24,21 @@ object JavaMixer {
 
     val audioDevices: List<JAudioDevice> get() = jMixers.map { JAudioDevice(it) }
 
+    val defaultAudioDevice: JAudioDevice? get() = audioDevices.find { it.jMixerInfo.name.contains("default") }
+
     val usableAudioDevices: List<JMixer> get() = jMixers.filter { it.allLines().isNotEmpty() }
 
     val jLines: List<JLine> get() = jMixers.flatMap { it.allLines() }
 
     val allDataLines: List<DataLine> get() = jLines.filterIsInstance<DataLine>()
 
-    val allWriteableDataLines: List<SourceDataLine> get() = jLines.filterIsInstance<SourceDataLine>()
+    val sourceDataLines: List<SourceDataLine> get() = jLines.filterIsInstance<SourceDataLine>()
 
-    val allReadableDataLines: List<TargetDataLine> get() = jLines.filterIsInstance<TargetDataLine>()
+    val writableLines: List<WritableLine> get() = sourceDataLines.map { WritableLine(it) }
+
+    val targetDataLines: List<TargetDataLine> get() = jLines.filterIsInstance<TargetDataLine>()
+
+    val readableLines: List<ReadableLine> get() = targetDataLines.map { ReadableLine(it) }
 
     val midiDevices: List<MidiDevice> get() = MidiSystem.getMidiDeviceInfo().map { MidiSystem.getMidiDevice(it) }
 

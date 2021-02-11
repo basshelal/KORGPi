@@ -35,3 +35,5 @@ inline fun logDAll(vararg messages: Any?) = messages.forEach { Log.d(it) }
 inline fun logE(message: Any? = "") = Log.e(message)
 
 inline fun logEAll(vararg messages: Any?) = messages.forEach { Log.e(it) }
+
+inline fun Any?.log(messages: Any? = "") = logD(this, messages)

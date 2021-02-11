@@ -36,6 +36,7 @@ inline val DataLine.details: String
         """DataLine:
         |type: ${this.javaClass.simpleName}
         |mixer name: ${this.mixer?.mixerInfo?.name}
+        |open: ${this.isOpen}
         |formats: ${it.formats.size}
         |min buffer size: ${it.minBufferSize}
         |max buffer size: ${it.maxBufferSize}

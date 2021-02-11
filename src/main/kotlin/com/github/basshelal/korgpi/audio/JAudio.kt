@@ -17,44 +17,37 @@ class JAudioDevice(val jMixer: JMixer) {
 
     val isOpen: Boolean get() = jMixer.isOpen
 
-    val availableReadableLines: List<JLineInfo>
-        get() {
-            return jMixer.targetLineInfo.asList()
-        }
+    val jMixerInfo: JMixerInfo get() = jMixer.mixerInfo
 
-    val availableWritableLines: List<JLineInfo>
-        get() {
-            return jMixer.sourceLineInfo.asList()
-        }
+    val availableTargetLines: List<JLineInfo> get() = jMixer.targetLineInfo.asList()
+
+    val availableSourceLines: List<JLineInfo> get() = jMixer.sourceLineInfo.asList()
 
     val openReadableLines: List<ReadableLine>
-        get() {
-            return jMixer.targetLines.filterIsInstance<TargetDataLine>().map { ReadableLine(it) }
-        }
+        get() = jMixer.targetLines.filterIsInstance<TargetDataLine>().map { ReadableLine(it) }
 
     val openWritableLines: List<WritableLine>
-        get() {
-            return jMixer.sourceLines.filterIsInstance<SourceDataLine>().map { WritableLine(it) }
-        }
-
-    val jInfo: JMixerInfo
-        get() {
-            return jMixer.mixerInfo
-        }
+        get() = jMixer.sourceLines.filterIsInstance<SourceDataLine>().map { WritableLine(it) }
 
     val details: String
         get() = """Audio Device:
-        |  name: ${jInfo.name}
+        |  name: ${jMixerInfo.name}
         |  type: ${jMixer.javaClass.simpleName}
-        |  version: ${jInfo.version}
-        |  vendor: ${jInfo.vendor}
-        |  description: ${jInfo.description}
+        |  version: ${jMixerInfo.version}
+        |  vendor: ${jMixerInfo.vendor}
+        |  description: ${jMixerInfo.description}
         |  isOpen: ${isOpen}
-        |  available readable lines: ${availableReadableLines.size}
-        |  available writable lines: ${availableWritableLines.size}
+        |  available readable lines: ${availableTargetLines.size}
+        |  available writable lines: ${availableSourceLines.size}
         |  open readable lines: ${openReadableLines.size}
         |  open writable lines: ${openWritableLines.size}
         """.trimMargin()
+
+    fun open() = jMixer.open()
+
+    fun close() = jMixer.close()
+
+    fun getLine(jLineInfo: JLineInfo): JLine = jMixer.getLine(jLineInfo)
 }
 
 abstract class AudioLine<T : JLine>(val jLine: T)
@@ -65,13 +58,21 @@ abstract class AudioLine<T : JLine>(val jLine: T)
  */
 class WritableLine(sdLine: SourceDataLine) : AudioLine<SourceDataLine>(sdLine) {
 
+    private val bytes: ByteArray = ByteArray(jLine.bufferSize)
+
     // TODO: 10/02/2021 What is buffer?? Initialize it and set it
-    val buffer: FloatBuffer = FloatBuffer(0)
+    val buffer: FloatBuffer
 
     init {
+        val bufferSize = jLine.bufferSize // buffer size bytes, we use floats so we need to convert!
+        buffer = FloatBuffer(bufferSize)
+    }
 
-        jLine.bufferSize // buffer size bytes, we use floats so we need to convert!
-
+    @RealTimeCritical
+    fun process() {
+        while (jLine.available() > 0) {
+            jLine.write(null, 0, 0) // write max possible bytes without blocking
+        }
     }
 
 }
