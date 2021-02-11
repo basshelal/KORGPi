@@ -63,6 +63,10 @@ inline fun <reified E : Enum<E>> EnumSet(): EnumSet<E> = EnumSet.noneOf(E::class
 
 inline fun <reified E : Enum<E>> EnumSet(e: E): EnumSet<E> = EnumSet.of(e)
 
+inline fun <reified R> Iterable<*>.mapAs(): Iterable<R?> = this.map { it as? R }
+
+inline fun <reified R> Iterable<*>.mapAsNotNull(): Iterable<R> = this.mapAs<R>().filterNotNull()
+
 inline fun FloatBuffer(capacity: Int): FloatBuffer = FloatBuffer.allocate(capacity)
 
 inline fun FloatBuffer(array: FloatArray): FloatBuffer = FloatBuffer.wrap(array)

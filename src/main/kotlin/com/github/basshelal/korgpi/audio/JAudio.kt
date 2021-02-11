@@ -2,6 +2,8 @@ package com.github.basshelal.korgpi.audio
 
 import com.github.basshelal.korgpi.RealTimeCritical
 import com.github.basshelal.korgpi.extensions.FloatBuffer
+import com.github.basshelal.korgpi.extensions.details
+import com.github.basshelal.korgpi.extensions.mapAsNotNull
 import com.github.basshelal.korgpi.log.Timer
 import com.github.basshelal.korgpi.utils.JLine
 import com.github.basshelal.korgpi.utils.JLineInfo
@@ -12,16 +14,25 @@ import java.nio.FloatBuffer
 import javax.sound.sampled.SourceDataLine
 import javax.sound.sampled.TargetDataLine
 
-
 class JAudioDevice(val jMixer: JMixer) {
 
     val isOpen: Boolean get() = jMixer.isOpen
 
     val jMixerInfo: JMixerInfo get() = jMixer.mixerInfo
 
-    val availableTargetLines: List<JLineInfo> get() = jMixer.targetLineInfo.asList()
+    val availableTargetLineInfos: List<JLineInfo> get() = jMixer.targetLineInfo.asList()
 
-    val availableSourceLines: List<JLineInfo> get() = jMixer.sourceLineInfo.asList()
+    val availableTargetLines: List<JLine> get() = availableSourceLineInfos.map { getLine(it) }
+
+    val availableSourceLineInfos: List<JLineInfo> get() = jMixer.sourceLineInfo.asList()
+
+    val availableSourceLines: List<JLine> get() = availableSourceLineInfos.map { getLine(it) }
+
+    val readableLines: List<ReadableLine>
+        get() = availableTargetLines.mapAsNotNull<TargetDataLine>().map { ReadableLine(it) }
+
+    val writableLines: List<WritableLine>
+        get() = availableSourceLines.mapAsNotNull<SourceDataLine>().map { WritableLine(it) }
 
     val openReadableLines: List<ReadableLine>
         get() = jMixer.targetLines.filterIsInstance<TargetDataLine>().map { ReadableLine(it) }
@@ -37,8 +48,8 @@ class JAudioDevice(val jMixer: JMixer) {
         |  vendor: ${jMixerInfo.vendor}
         |  description: ${jMixerInfo.description}
         |  isOpen: ${isOpen}
-        |  available readable lines: ${availableTargetLines.size}
-        |  available writable lines: ${availableSourceLines.size}
+        |  available readable lines: ${availableTargetLineInfos.size}
+        |  available writable lines: ${availableSourceLineInfos.size}
         |  open readable lines: ${openReadableLines.size}
         |  open writable lines: ${openWritableLines.size}
         """.trimMargin()
@@ -50,7 +61,9 @@ class JAudioDevice(val jMixer: JMixer) {
     fun getLine(jLineInfo: JLineInfo): JLine = jMixer.getLine(jLineInfo)
 }
 
-abstract class AudioLine<T : JLine>(val jLine: T)
+abstract class AudioLine<T : JLine>(val jLine: T) {
+    fun open() = jLine.open()
+}
 
 /**
  * An [AudioLine] that can be written to from the application, from the application's point of view this is an output
@@ -64,8 +77,11 @@ class WritableLine(sdLine: SourceDataLine) : AudioLine<SourceDataLine>(sdLine) {
     val buffer: FloatBuffer
 
     init {
+        jLine.open(null, 0) // set buffer size here, if line was open close and reopen
+
         val bufferSize = jLine.bufferSize // buffer size bytes, we use floats so we need to convert!
         buffer = FloatBuffer(bufferSize)
+
     }
 
     @RealTimeCritical
@@ -74,6 +90,8 @@ class WritableLine(sdLine: SourceDataLine) : AudioLine<SourceDataLine>(sdLine) {
             jLine.write(null, 0, 0) // write max possible bytes without blocking
         }
     }
+
+    val details: String get() = jLine.details
 
 }
 

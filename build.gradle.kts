@@ -10,6 +10,7 @@ version = "1.0-SNAPSHOT"
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "14"
+    kotlinOptions.freeCompilerArgs += "-Xinline-classes"
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalUnsignedTypes"
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
@@ -33,7 +34,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-    testImplementation(kotlin("test-junit5"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
     implementation("no.tornado:tornadofx:1.7.20")
     implementation("com.jfoenix:jfoenix:9.0.10")
