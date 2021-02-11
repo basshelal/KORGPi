@@ -4,9 +4,11 @@
 
 package com.github.basshelal.korgpi.extensions
 
+import com.github.basshelal.korgpi.SAMPLE_RATE
 import com.github.basshelal.korgpi.mixers.JavaMixer
 import javax.sound.midi.MidiDevice
 import javax.sound.midi.ShortMessage
+import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.Line
 import javax.sound.sampled.Mixer
@@ -65,3 +67,7 @@ inline val ShortMessage.details: String
     get() {
         return "Command: $command, channel: $channel, Data1: $data1, Data2: $data2"
     }
+
+object AudioFormats {
+    val default = AudioFormat(SAMPLE_RATE, 16, 2, true, false)
+}

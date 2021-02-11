@@ -46,4 +46,9 @@ object JavaMixer {
 
     val midiInDevices: List<MidiDevice> get() = midiDevices.filter { it.simpleClassName == "MidiInDevice" }
 
+    fun start(onProcess: () -> Boolean) {
+        // start the audio thread, how do we make it run once every frame????
+        // how can we even know what a frame is??
+    }
+
 }

@@ -13,3 +13,5 @@ const val _24BIT_UNSIGNED_MAX: Int = 16_777_215
 
 // TODO: 13/01/2021 Change this when we decide on new project name
 const val APP_NAME = "KorgPi"
+
+const val SAMPLE_RATE = 48000F

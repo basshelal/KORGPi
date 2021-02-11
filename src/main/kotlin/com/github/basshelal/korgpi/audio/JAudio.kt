@@ -1,18 +1,24 @@
 package com.github.basshelal.korgpi.audio
 
 import com.github.basshelal.korgpi.RealTimeCritical
+import com.github.basshelal.korgpi.extensions.AudioFormats
 import com.github.basshelal.korgpi.extensions.FloatBuffer
 import com.github.basshelal.korgpi.extensions.details
 import com.github.basshelal.korgpi.extensions.mapAsNotNull
+import com.github.basshelal.korgpi.extensions.now
 import com.github.basshelal.korgpi.log.Timer
+import com.github.basshelal.korgpi.log.logD
 import com.github.basshelal.korgpi.utils.JLine
 import com.github.basshelal.korgpi.utils.JLineInfo
 import com.github.basshelal.korgpi.utils.JMixer
 import com.github.basshelal.korgpi.utils.JMixerInfo
 import java.lang.Thread.MAX_PRIORITY
 import java.nio.FloatBuffer
+import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.SourceDataLine
 import javax.sound.sampled.TargetDataLine
+import kotlin.concurrent.thread
+import kotlin.random.Random
 
 class JAudioDevice(val jMixer: JMixer) {
 
@@ -62,37 +68,77 @@ class JAudioDevice(val jMixer: JMixer) {
 }
 
 abstract class AudioLine<T : JLine>(val jLine: T) {
-    fun open() = jLine.open()
+    open fun open() = jLine.open()
+    open fun close() = jLine.close()
 }
 
 /**
  * An [AudioLine] that can be written to from the application, from the application's point of view this is an output
  * for the audio data.
  */
-class WritableLine(sdLine: SourceDataLine) : AudioLine<SourceDataLine>(sdLine) {
+class WritableLine(sdLine: SourceDataLine,
+                   var audioFormat: AudioFormat = AudioFormats.default,
+                   var byteBufferSize: Int = 512) : AudioLine<SourceDataLine>(sdLine) {
 
-    private val bytes: ByteArray = ByteArray(jLine.bufferSize)
+    var bytes: ByteArray = ByteArray(byteBufferSize)
+    private var availableBytes = 0
+    private var bytesCursor = 0
+    private var writtenBytes = 0
 
     // TODO: 10/02/2021 What is buffer?? Initialize it and set it
     val buffer: FloatBuffer
 
     init {
-        jLine.open(null, 0) // set buffer size here, if line was open close and reopen
 
         val bufferSize = jLine.bufferSize // buffer size bytes, we use floats so we need to convert!
         buffer = FloatBuffer(bufferSize)
+
+        open()
+        thread {
+            while (true) {
+                jLine.available().also { if (it > 0) logD(it, now) else jLine.flush() }
+            }
+        }
 
     }
 
     @RealTimeCritical
     fun process() {
-        while (jLine.available() > 0) {
-            jLine.write(null, 0, 0) // write max possible bytes without blocking
+        availableBytes = jLine.available()
+        if (availableBytes <= 0) {
+            jLine.flush()
+            availableBytes = jLine.available()
         }
+        if (bytesCursor + availableBytes <= byteBufferSize) {
+            // correct
+            writtenBytes = jLine.write(bytes, bytesCursor, availableBytes)
+            bytesCursor += writtenBytes
+        } else {
+            // do some clipping
+            availableBytes = byteBufferSize - bytesCursor
+            writtenBytes = jLine.write(bytes, bytesCursor, availableBytes)
+            bytesCursor += writtenBytes
+        }
+        if (bytesCursor == byteBufferSize) {
+            bytesCursor = 0
+            // notify a block has finished!
+            onNextBlock()
+        }
+        logD("available: $availableBytes ${jLine.available()}, written: $writtenBytes cursor: $bytesCursor, now: $now")
+    }
+
+    @RealTimeCritical
+    fun onNextBlock() {
+        bytes = Random.nextBytes(byteBufferSize)
     }
 
     val details: String get() = jLine.details
 
+    override fun open() {
+        if (jLine.isOpen) jLine.close()
+        jLine.open(audioFormat, byteBufferSize)
+        jLine.start()
+    }
 }
 
 class ReadableLine(tdLine: TargetDataLine) : AudioLine<TargetDataLine>(tdLine) {
